@@ -1,0 +1,4 @@
+# Ignorar dependencias de Node
+front/node_modules/
+node_modules/
+.env
