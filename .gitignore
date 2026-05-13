@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Ignorar dependencias de Node en el front
 /front/node_modules/
 
@@ -6,3 +7,9 @@
 
 # Ignorar variables de entorno
 .env
+=======
+# Ignorar dependencias de Node
+front/node_modules/
+node_modules/
+.env
+>>>>>>> 6cfde1ecf716dcc85def6f0c66c34e013f28f6b2

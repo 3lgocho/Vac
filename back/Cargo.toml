@@ -4,8 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+<<<<<<< HEAD
 axum = "0.8.9"
 dotenvy = "0.15.7"
 serde = { version = "1.0.228", features = ["derive"] }
 sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "macros"] }
 tokio = { version = "1.52.3", features = ["full"] }
+=======
+>>>>>>> 6cfde1ecf716dcc85def6f0c66c34e013f28f6b2
