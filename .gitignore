@@ -1,0 +1,8 @@
+# Ignorar dependencias de Node en el front
+/front/node_modules/
+
+# Ignorar binarios compilados de Rust en el back
+/back/target/
+
+# Ignorar variables de entorno
+.env
