@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 
+
 export default function Dashboard() {
   const router = useRouter();
 

@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    // Aquí le decimos a Tailwind que busque clases en tu carpeta app
     content: [
         "./app/**/*.{js,jsx,ts,tsx}",
         "./components/**/*.{js,jsx,ts,tsx}"
     ],
+    presets: [require("nativewind/preset")], // <--- ESTA ES LA LÍNEA MÁGICA QUE FALTABA
     theme: {
         extend: {
             colors: {
