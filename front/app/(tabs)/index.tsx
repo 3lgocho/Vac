@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function Dashboard() {
         <View className="px-margin-mobile pb-stack-md">
           <View className="flex flex-row items-center gap-stack-sm">
             <View className="relative flex-grow justify-center">
-              <Text className="material-symbols-outlined absolute left-3 z-10 text-outline">search</Text>
+              <MaterialIcons name="search" size={24} className="absolute left-3 z-10 text-on-surface" color="#4B5563" />
               <TextInput
                 className="w-full h-touch-target-min pl-10 pr-4 rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md"
                 placeholder="Buscar paciente por cédula o nombre..."
@@ -34,7 +34,7 @@ export default function Dashboard() {
               />
             </View>
             <TouchableOpacity className="w-touch-target-min h-touch-target-min flex items-center justify-center rounded-full bg-surface-container-low border border-outline-variant">
-              <Text className="material-symbols-outlined text-on-surface">tune</Text>
+              <MaterialIcons name="tune" size={24} className="text-on-surface" color="#4B5563" />
             </TouchableOpacity>
           </View>
         </View>
@@ -45,7 +45,7 @@ export default function Dashboard() {
             onPress={() => router.push('/registro/paso1')}
             className="w-full h-touch-target-min flex flex-row items-center justify-center gap-2 bg-primary rounded-xl"
           >
-            <Text className="material-symbols-outlined text-on-primary">person_add</Text>
+            <MaterialIcons name="person-add" size={24} className="text-on-primary" color="#fff" />
             <Text className="text-on-primary font-label-lg text-label-lg">AGREGAR NUEVO PACIENTE</Text>
           </TouchableOpacity>
         </View>
@@ -69,7 +69,7 @@ export default function Dashboard() {
               </View>
               <View className="items-end">
                 <View className="flex flex-row items-center gap-1 bg-primary-fixed/20 px-2 py-1 rounded-lg">
-                  <Text className="material-symbols-outlined text-[14px] text-primary">vaccines</Text>
+                  <MaterialIcons name="vaccines" size={24} className="text-primary" />
                   <Text className="font-label-md text-label-md text-primary">Covid-19</Text>
                 </View>
                 <Text className="font-body-md text-body-md text-outline text-xs mt-1">Hoy, 10:30 AM</Text>
@@ -90,7 +90,7 @@ export default function Dashboard() {
               </View>
               <View className="items-end">
                 <View className="flex flex-row items-center gap-1 bg-secondary-fixed/20 px-2 py-1 rounded-lg">
-                  <Text className="material-symbols-outlined text-[14px] text-secondary">calendar_month</Text>
+                  <MaterialIcons name="event" size={24} className="text-secondary" />
                   <Text className="font-label-md text-label-md text-secondary">Agendado</Text>
                 </View>
                 <Text className="font-body-md text-body-md text-outline text-xs mt-1">Mañana</Text>

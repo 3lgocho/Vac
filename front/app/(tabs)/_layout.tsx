@@ -1,22 +1,23 @@
 // app/(tabs)/_layout.tsx
 import React from 'react';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
-import '../../global.css';
+
 
 export default function TabsLayout() {
     return (
         <Tabs screenOptions={{
             headerShown: false,
             tabBarStyle: { height: 80, paddingBottom: 20 },
-            tabBarActiveTintColor: '#008080', // Tu color primary-container
+            tabBarActiveTintColor: '#008080',
         }}>
             <Tabs.Screen
                 name="index"
                 options={{
                     title: 'Home',
                     tabBarIcon: ({ color }) => (
-                        <Text style={{ fontFamily: 'Material Symbols Outlined', fontSize: 24, color }}>home</Text>
+                        <MaterialIcons name="home" size={24} color={color} />
                     ),
                 }}
             />
