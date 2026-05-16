@@ -1,37 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { GRUPOS_ESPECIALES } from '../../constants/grupos_especiales';
+import { useRegistroStore } from '../../store/registroStore'; // Importamos Zustand
 
 export default function Paso3() {
     const router = useRouter();
 
-    // Estado para la selección múltiple de los grupos especiales
-    const [gruposSeleccionados, setGruposSeleccionados] = useState<string[]>([]);
-
-    // Función que agrega o quita el grupo del arreglo
-    const toggleGrupo = (value: string) => {
-        setGruposSeleccionados((prev) => {
-            if (prev.includes(value)) {
-                return prev.filter((item) => item !== value);
-            } else {
-                return [...prev, value];
-            }
-        });
-    };
+    // 1. Extraemos TODO de Zustand. Ya no necesitamos useState locales.
+    // También extraemos clearFormData para limpiar todo tras un registro exitoso.
+    const { gruposSeleccionados, toggleGrupo, clearFormData } = useRegistroStore();
 
     return (
         <SafeAreaView className="bg-background flex-1">
-            {/* Header */}
-            <View className="bg-surface-container-lowest border-b border-surface-container-highest h-16 flex flex-row items-center px-4 w-full z-50">
-                <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 flex items-center justify-center">
-                    <MaterialIcons name="arrow-back" size={24} className="text-primary" color="#008080" />
-                </TouchableOpacity>
-                <Text className="ml-2 font-headline-sm text-headline-sm text-primary font-bold tracking-tight">Registro de Vacunación</Text>
-            </View>
-
             <ScrollView className="flex-1 w-full max-w-2xl mx-auto px-margin-mobile mt-stack-lg">
+
                 {/* Progress Bar */}
                 <View className="mb-stack-lg bg-surface-container-lowest rounded-xl border border-surface-container-highest p-gutter">
                     <View className="flex flex-row justify-between items-center mb-stack-sm">
@@ -56,13 +40,14 @@ export default function Paso3() {
                         {/* El Grid de 2x5 */}
                         <View className="flex flex-row flex-wrap justify-between gap-y-3">
                             {GRUPOS_ESPECIALES.map((grupo) => {
+                                // Leemos la memoria global para saber si está seleccionado
                                 const isSelected = gruposSeleccionados.includes(grupo.value);
+
                                 return (
                                     <TouchableOpacity
                                         key={grupo.id}
-                                        onPress={() => toggleGrupo(grupo.value)}
+                                        onPress={() => toggleGrupo(grupo.value)} // Guardamos en memoria global
                                         activeOpacity={0.7}
-                                        // Ocupa el 48% del ancho para forzar 2 columnas
                                         className={`w-[48%] h-14 px-2 flex flex-row items-center justify-center rounded-xl border ${isSelected
                                             ? 'border-primary'
                                             : 'border-outline-variant'
@@ -75,7 +60,7 @@ export default function Paso3() {
                                             className="mr-2"
                                         />
                                         <Text
-                                            className={`flex-1 font-body-sm text-left leading-tight ${isSelected ? "#008080" : 'text-on-surface'
+                                            className={`flex-1 font-body-sm text-left leading-tight ${isSelected ? "text-primary" : 'text-on-surface'
                                                 }`}
                                         >
                                             {grupo.label}
@@ -142,8 +127,20 @@ export default function Paso3() {
                     <TouchableOpacity onPress={() => router.back()} className="flex-1 h-touch-target-min bg-surface-container-lowest border border-outline rounded-lg flex items-center justify-center">
                         <Text className="text-on-surface font-label-lg text-label-lg uppercase tracking-wide">Atrás</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
-                        onPress={() => router.push('/')}
+                        onPress={() => {
+                            // 1. Mostrar todo el JSON de Zustand listo para enviar
+                            console.log("🚀 Payload listo para enviar al backend:", useRegistroStore.getState());
+
+                            // 2. Aquí en el futuro pones la petición a tu API en Rust (Axios / Fetch)
+
+                            // 3. Limpiar formulario tras éxito
+                            clearFormData();
+
+                            // 4. Salir usando "replace" para no manchar el historial
+                            router.replace('/');
+                        }}
                         className="flex-1 h-touch-target-min bg-primary rounded-lg flex items-center justify-center">
                         <Text className="text-on-primary font-label-lg text-label-lg uppercase tracking-wide">Finalizar Registro</Text>
                     </TouchableOpacity>

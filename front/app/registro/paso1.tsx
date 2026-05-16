@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, Pressable, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useRegistroStore } from '../../store/registroStore'; // Ajusta el path si es necesario
 
 export default function Paso1() {
     const router = useRouter();
-    const [genero, setGenero] = useState('Femenino'); // Femenino estará seleccionado por defecto
-    const [tipoDoc, setTipoDoc] = useState('V'); // Por defecto será 'V'
-    const [isOpen, setIsOpen] = useState(false); // Estado para el dropdown de V/E 
 
+    // Extraemos las variables y la función de actualización desde Zustand
+    const { genero, tipoDoc, cedula, nombre, apellido, updateField } = useRegistroStore();
+
+    // Solo mantenemos local el estado de apertura del dropdown de la cédula
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <SafeAreaView className="bg-background flex-1">
-            {/* Header */}
-            <View className="bg-surface-container-lowest border-b border-surface-container-highest h-16 flex flex-row items-center px-4 w-full z-50">
-                <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 flex items-center justify-center">
-                    <MaterialIcons name="arrow-back" size={24} className="text-primary" color="#008080" />
-                </TouchableOpacity>
-                <Text className="ml-2 font-headline-sm text-headline-sm text-primary font-bold tracking-tight">Registro de Vacunación</Text>
-            </View>
-
             <ScrollView className="flex-1 w-full max-w-3xl mx-auto px-margin-mobile pt-stack-lg">
+
                 {/* Progress Indicator */}
                 <View className="mb-stack-lg">
                     <View className="flex flex-row justify-between items-center mb-stack-sm">
@@ -42,10 +38,10 @@ export default function Paso1() {
                     </View>
 
                     <View className="space-y-stack-md gap-4">
+
                         {/* Cédula */}
                         <View className="flex flex-col gap-unit relative z-50">
                             <Text className="font-label-md text-label-md text-on-surface mb-1">Documento de Identidad</Text>
-                            {/* Contenedor relativo para que el dropdown se posicione respecto a este */}
                             <View className="flex flex-row relative z-50">
 
                                 <TouchableOpacity
@@ -57,23 +53,29 @@ export default function Paso1() {
                                 </TouchableOpacity>
 
                                 <TextInput
+                                    value={cedula}
+                                    onChangeText={(text) => {
+                                        // Expresión regular que reemplaza cualquier cosa que NO sea número (\D) por vacío ('')
+                                        const soloNumeros = text.replace(/\D/g, '');
+                                        updateField('cedula', soloNumeros);
+                                    }}
                                     className="flex-1 h-touch-target-min border rounded-r-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md px-4"
                                     placeholder="Ej. 12345678"
-                                    keyboardType="phone-pad"
+                                    keyboardType="numeric"
                                 />
 
-                                {/* --- Menú Desplegable Absoluto --- */}
+                                {/* Menú Desplegable Absoluto de Cédula */}
                                 {isOpen && (
                                     <View className="absolute top-[52px] left-0 w-20 bg-white border border-gray-300 rounded-lg shadow-md z-[100] overflow-hidden elevation-5">
                                         <TouchableOpacity
                                             className="px-4 py-3 border-b border-gray-200 active:bg-gray-100 bg-white"
-                                            onPress={() => { setTipoDoc('V'); setIsOpen(false); }}
+                                            onPress={() => { updateField('tipoDoc', 'V'); setIsOpen(false); }}
                                         >
                                             <Text className="text-center font-body-md text-lg text-gray-800">V</Text>
                                         </TouchableOpacity>
                                         <TouchableOpacity
                                             className="px-4 py-3 active:bg-gray-100 bg-white"
-                                            onPress={() => { setTipoDoc('E'); setIsOpen(false); }}
+                                            onPress={() => { updateField('tipoDoc', 'E'); setIsOpen(false); }}
                                         >
                                             <Text className="text-center font-body-md text-lg text-gray-800">E</Text>
                                         </TouchableOpacity>
@@ -85,22 +87,33 @@ export default function Paso1() {
                         {/* Nombre */}
                         <View className="flex flex-col gap-unit">
                             <Text className="font-label-md text-label-md text-on-surface mb-1">Nombre</Text>
-                            <TextInput className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-DEFAULT px-4" />
+                            <TextInput
+                                value={nombre}
+                                onChangeText={(text) => updateField('nombre', text)}
+                                className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md px-4"
+                                placeholder="Ej. Juan"
+                            />
                         </View>
 
                         {/* Apellido */}
                         <View className="flex flex-col gap-unit">
                             <Text className="font-label-md text-label-md text-on-surface mb-1">Apellido</Text>
-                            <TextInput className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-DEFAULT px-4" />
+                            <TextInput
+                                value={apellido}
+                                onChangeText={(text) => updateField('apellido', text)}
+                                className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md px-4"
+                                placeholder="Ej. Pérez"
+                            />
                         </View>
 
                         {/* Gender Segmented Control */}
                         <View className="flex flex-col gap-unit">
                             <Text className="font-label-md text-label-md text-on-surface mb-1">Género</Text>
                             <View className="flex flex-row w-full bg-surface-container-low rounded-lg border border-outline-variant p-[2px]">
+
                                 {/* Botón Femenino */}
                                 <TouchableOpacity
-                                    onPress={() => setGenero('Femenino')}
+                                    onPress={() => updateField('genero', 'Femenino')}
                                     className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Femenino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
                                     <Text className={`font-label-lg text-label-lg ${genero === 'Femenino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                         Femenino
@@ -109,7 +122,7 @@ export default function Paso1() {
 
                                 {/* Botón Masculino */}
                                 <TouchableOpacity
-                                    onPress={() => setGenero('Masculino')}
+                                    onPress={() => updateField('genero', 'Masculino')}
                                     className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Masculino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
                                     <Text className={`font-label-lg text-label-lg ${genero === 'Masculino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                         Masculino

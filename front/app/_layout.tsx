@@ -1,17 +1,14 @@
-// app/_layout.tsx
-import '../global.css'; // Importante para NativeWind v4
+import '../global.css';
 import { Stack } from 'expo-router';
 
 export default function RootLayout() {
     return (
         <Stack screenOptions={{ headerShown: false }}>
-            {/* Grupo de pestañas principales (Dashboard, etc) */}
+            {/* Navegación por pestañas principales */}
             <Stack.Screen name="(tabs)" />
 
-            {/* Pantallas del flujo de registro */}
-            <Stack.Screen name="registro/paso1" />
-            <Stack.Screen name="registro/paso2" />
-            <Stack.Screen name="registro/paso3" />
+            {/* Flujo completo de registro (Expo Router buscará el layout interno) */}
+            <Stack.Screen name="registro" />
         </Stack>
     );
 }
