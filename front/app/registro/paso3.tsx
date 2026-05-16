@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { GRUPOS_ESPECIALES } from '../../constants/grupos_especiales';
 
 export default function Paso3() {
     const router = useRouter();
+
+    // Estado para la selección múltiple de los grupos especiales
+    const [gruposSeleccionados, setGruposSeleccionados] = useState<string[]>([]);
+
+    // Función que agrega o quita el grupo del arreglo
+    const toggleGrupo = (value: string) => {
+        setGruposSeleccionados((prev) => {
+            if (prev.includes(value)) {
+                return prev.filter((item) => item !== value);
+            } else {
+                return [...prev, value];
+            }
+        });
+    };
 
     return (
         <SafeAreaView className="bg-background flex-1">
@@ -29,25 +44,49 @@ export default function Paso3() {
                 </View>
 
                 <View className="space-y-stack-lg pb-stack-lg gap-6">
-                    {/* Special Groups Section */}
+
+                    {/* Sección Dinámica de Grupos Especiales */}
                     <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter">
-                        <View className="flex flex-row items-center mb-stack-md">
+                        <View className="flex flex-row items-center mb-stack-sm">
                             <MaterialIcons name="group" size={24} className="text-primary mr-2" color="#008080" />
                             <Text className="font-headline-sm text-headline-sm text-on-surface">Grupos Especiales</Text>
                         </View>
-                        <View className="flex flex-col space-y-stack-sm gap-2">
-                            <TouchableOpacity className="flex flex-row items-center min-h-[48px] p-2 rounded-lg bg-surface-container-low">
-                                <View className="w-5 h-5 border border-primary bg-primary rounded flex items-center justify-center" />
-                                <Text className="ml-3 font-body-md text-body-md text-on-surface">Enfermos crónicos</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity className="flex flex-row items-center min-h-[48px] p-2 rounded-lg">
-                                <View className="w-5 h-5 border border-outline-variant rounded" />
-                                <Text className="ml-3 font-body-md text-body-md text-on-surface">Embarazadas</Text>
-                            </TouchableOpacity>
+                        <Text className="font-label-md text-on-surface-variant mb-4">Puede seleccionar más de una opción si aplica.</Text>
+
+                        {/* El Grid de 2x5 */}
+                        <View className="flex flex-row flex-wrap justify-between gap-y-3">
+                            {GRUPOS_ESPECIALES.map((grupo) => {
+                                const isSelected = gruposSeleccionados.includes(grupo.value);
+                                return (
+                                    <TouchableOpacity
+                                        key={grupo.id}
+                                        onPress={() => toggleGrupo(grupo.value)}
+                                        activeOpacity={0.7}
+                                        // Ocupa el 48% del ancho para forzar 2 columnas
+                                        className={`w-[48%] h-14 px-2 flex flex-row items-center justify-center rounded-xl border ${isSelected
+                                            ? 'border-primary'
+                                            : 'border-outline-variant'
+                                            }`}
+                                    >
+                                        <MaterialIcons
+                                            name={isSelected ? "check-box" : "check-box-outline-blank"}
+                                            size={20}
+                                            color={isSelected ? "#008080" : "#9CA3AF"}
+                                            className="mr-2"
+                                        />
+                                        <Text
+                                            className={`flex-1 font-body-sm text-left leading-tight ${isSelected ? "#008080" : 'text-on-surface'
+                                                }`}
+                                        >
+                                            {grupo.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
                         </View>
                     </View>
 
-                    {/* Biologicals Builder Section */}
+                    {/* Biologicals Builder Section (Se mantiene igual por ahora) */}
                     <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter">
                         <View className="flex flex-row items-center mb-stack-md">
                             <MaterialIcons name="vaccines" size={24} className="text-primary mr-2" color="#008080" />

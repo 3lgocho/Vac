@@ -1,14 +1,81 @@
 import React, { useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Switch } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Switch, Modal, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ETNIAS_INDIGENAS, EtniaItem } from '../../constants/etnias';
 
 export default function Paso2() {
     const router = useRouter();
-    const [etnia, setEtnia] = useState(''); // Estado para la etnia única
-    const [esIndigena, setEsIndigena] = useState(false); // Estado del Switch
-    const [searchIndigena, setSearchIndigena] = useState(''); // Estado del buscador
-    const [isListOpen, setIsListOpen] = useState(false); // Control del dropdown
+    const [etnia, setEtnia] = useState<string>('');
+    const [etniaLabel, setEtniaLabel] = useState<string>('');
+    const [esIndigena, setEsIndigena] = useState(false);
+    const [searchIndigena, setSearchIndigena] = useState('');
+    const [isListOpen, setIsListOpen] = useState(false);
+
+    // Nuevos estados para Fecha y Edad
+    const [fechaNacimiento, setFechaNacimiento] = useState('');
+    const [edad, setEdad] = useState('-- años');
+
+    // Función para aplicar la máscara DD/MM/AAAA
+    const handleDateChange = (text: string) => {
+        // 1. Eliminar cualquier carácter que no sea un número
+        let cleaned = text.replace(/\D/g, '');
+
+        // 2. Aplicar el formato DD/MM/AAAA
+        let formatted = cleaned;
+        if (cleaned.length > 2) {
+            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+        }
+        if (cleaned.length > 4) {
+            formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4, 8);
+        }
+
+        setFechaNacimiento(formatted);
+
+        // 3. Calcular la edad si la fecha está completa (10 caracteres)
+        if (formatted.length === 10) {
+            calcularEdad(formatted);
+        } else {
+            setEdad('-- años'); // Reiniciar si borran la fecha
+        }
+    };
+
+    // Función para calcular la edad exacta
+    const calcularEdad = (fecha: string) => {
+        const [dia, mes, anio] = fecha.split('/');
+        const fechaNac = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+        const hoy = new Date();
+
+        // Validar que la fecha sea lógica
+        if (isNaN(fechaNac.getTime()) || fechaNac > hoy) {
+            setEdad('Fecha inválida');
+            return;
+        }
+
+        let ageYears = hoy.getFullYear() - fechaNac.getFullYear();
+        const m = hoy.getMonth() - fechaNac.getMonth();
+
+        // Ajustar si aún no ha cumplido años este año
+        if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) {
+            ageYears--;
+        }
+
+        if (ageYears > 0) {
+            setEdad(`${ageYears} años`);
+        } else {
+            // Si es menor a 1 año, calcular en meses (útil para vacunas)
+            let ageMonths = (hoy.getFullYear() - fechaNac.getFullYear()) * 12 + (hoy.getMonth() - fechaNac.getMonth());
+            if (hoy.getDate() < fechaNac.getDate()) {
+                ageMonths--;
+            }
+
+            if (ageMonths > 0) {
+                setEdad(`${ageMonths} meses`);
+            } else {
+                setEdad('Días de nacido');
+            }
+        }
+    };
 
     return (
         <SafeAreaView className="bg-surface flex-1">
@@ -36,20 +103,34 @@ export default function Paso2() {
                         <View className="h-full bg-primary rounded-full" style={{ width: '66.66%' }}></View>
                     </View>
                 </View>
+
+                {/* Datos Personales Section */}
                 <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
                     <Text className="font-headline-sm text-on-surface mb-stack-md">Datos Personales</Text>
                     <View className="flex flex-col gap-4 mb-stack-md">
                         <View className="flex flex-col gap-unit">
                             <Text className="font-label-lg text-on-surface-variant mb-1">Fecha de Nacimiento</Text>
-                            <TextInput className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 font-body-md text-on-surface bg-surface-container-lowest" placeholder="DD/MM/AAAA" />
+                            <TextInput
+                                className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 font-body-md text-on-surface bg-surface-container-lowest"
+                                placeholder="DD/MM/AAAA"
+                                keyboardType="numeric" // <-- Despliega el teclado numérico directamente
+                                maxLength={10} // <-- Evita que escriban más de 10 caracteres
+                                value={fechaNacimiento}
+                                onChangeText={handleDateChange}
+                            />
                         </View>
                         <View className="flex flex-col gap-unit">
                             <Text className="font-label-lg text-on-surface-variant mb-1">Edad</Text>
-                            <TextInput className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 bg-surface-container-low text-on-surface-variant font-body-md" value="-- años" editable={false} />
+                            <TextInput
+                                className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 bg-surface-container-low text-on-surface-variant font-body-md"
+                                value={edad}
+                                editable={false} // <-- Completamente bloqueado para el usuario
+                            />
                         </View>
                     </View>
                 </View>
 
+                {/* Dirección Section */}
                 <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
                     <View className="flex flex-row items-center mb-stack-sm">
                         <MaterialIcons name="location-on" size={24} className="text-primary mr-2" color="#008080" />
@@ -70,11 +151,13 @@ export default function Paso2() {
                         </View>
                     </View>
                 </View>
+
                 {/* Etnia Section */}
-                <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
+                {/* Etnia Section */}
+                <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg z-10">
                     <Text className="font-headline-sm text-on-surface mb-stack-md">Etnia</Text>
 
-                    {/* Mostrar los botones de Etnia SOLO si el switch está apagado */}
+                    {/* Mostrar los botones de Etnia general SOLO si el switch está apagado */}
                     {!esIndigena && (
                         <View className="flex flex-col gap-stack-sm mb-6">
                             <Text className="font-label-lg text-on-surface-variant mb-2">Seleccione una opción</Text>
@@ -109,9 +192,7 @@ export default function Paso2() {
                             onValueChange={(value: boolean) => {
                                 setEsIndigena(value);
                                 if (!value) {
-                                    setIsListOpen(false); // Cerrar lista si apaga el switch
-                                } else {
-                                    setEtnia(''); // Opcional: Limpiar la etnia general si enciende el switch
+                                    setEtnia(''); // Limpia la selección si se apaga
                                 }
                             }}
                             trackColor={{ false: "#D1D5DB", true: "#008080" }}
@@ -119,51 +200,95 @@ export default function Paso2() {
                         />
                     </View>
 
-                    {/* Dropdown con Searchbar (Solo aparece si el switch es true) */}
+                    {/* Botón que simula un Input para abrir el Modal */}
                     {esIndigena && (
-                        <View className="mt-4 relative z-50">
-                            <Text className="font-label-md text-on-surface mb-1">Buscar Grupo Indígena</Text>
-                            <View className="flex flex-row items-center border border-outline-variant rounded-lg bg-surface-container-low px-3">
-                                <MaterialIcons name="search" size={20} color="#6B7280" />
+                        <View className="mt-4">
+                            <Text className="font-label-md text-on-surface mb-1">Grupo Indígena Seleccionado</Text>
+                            <TouchableOpacity
+                                onPress={() => setIsListOpen(true)}
+                                className="flex flex-row items-center justify-between border border-outline-variant rounded-lg bg-surface-container-low px-3 h-12"
+                            >
+                                <Text className={`font-body-md ${etniaLabel ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                                    {etniaLabel || "Toque para buscar y seleccionar..."}
+                                </Text>
+                                <MaterialIcons name="arrow-drop-down" size={24} color="#6B7280" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+
+                {/* MODAL NATIVO PARA LA BÚSQUEDA */}
+                <Modal
+                    visible={isListOpen}
+                    animationType="slide"
+                    transparent={true}
+                    onRequestClose={() => setIsListOpen(false)}
+                >
+                    {/* Fondo oscuro translúcido */}
+                    <View className="flex-1 justify-end bg-black/50">
+                        {/* Contenedor del buscador (Bottom Sheet) */}
+                        <View className="bg-surface-container-lowest h-[80%] rounded-t-3xl p-6 shadow-xl">
+
+                            {/* Header del Modal */}
+                            <View className="flex flex-row justify-between items-center mb-4">
+                                <Text className="font-headline-sm text-on-surface">Buscar Etnia</Text>
+                                <TouchableOpacity onPress={() => setIsListOpen(false)} className="p-2">
+                                    <MaterialIcons name="close" size={24} color="#1F2937" />
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Input real de búsqueda dentro del modal */}
+                            <View className="flex flex-row items-center border border-primary rounded-lg bg-surface-container-low px-3 mb-4">
+                                <MaterialIcons name="search" size={20} color="#008080" />
                                 <TextInput
+                                    autoFocus={true} // El teclado se abre solo al abrir el modal
                                     className="flex-1 h-12 px-2 text-on-surface"
-                                    placeholder="Ej. 1 Wayuu..."
+                                    placeholder="Ej. Wayuu..."
                                     value={searchIndigena}
-                                    onChangeText={(text) => {
-                                        setSearchIndigena(text);
-                                        setIsListOpen(text.length > 0);
-                                    }}
-                                    onFocus={() => setIsListOpen(true)}
+                                    onChangeText={setSearchIndigena}
                                 />
                                 {searchIndigena.length > 0 && (
-                                    <TouchableOpacity onPress={() => { setSearchIndigena(''); setIsListOpen(false); }}>
+                                    <TouchableOpacity onPress={() => setSearchIndigena('')}>
                                         <MaterialIcons name="cancel" size={20} color="#6B7280" />
                                     </TouchableOpacity>
                                 )}
                             </View>
 
-                            {/* Lista Desplegable (Dropdown) */}
-                            {isListOpen && (
-                                <View className="absolute top-[75px] left-0 right-0 bg-white border border-outline-variant rounded-lg shadow-xl z-50 overflow-hidden elevation-5">
-                                    <ScrollView className="max-h-40" keyboardShouldPersistTaps="handled">
+                            {/* Lista nativa (FlatList no entra en conflicto con el ScrollView principal) */}
+                            {/* Lista nativa filtrada */}
+                            <ScrollView keyboardShouldPersistTaps="handled" className="flex-1">
+                                {ETNIAS_INDIGENAS
+                                    .filter(item =>
+                                        item.label.toLowerCase().includes(searchIndigena.toLowerCase()) ||
+                                        item.id.includes(searchIndigena)
+                                    )
+                                    .map((item: EtniaItem) => (
                                         <TouchableOpacity
-                                            className="px-4 py-3 border-b border-surface-container-high active:bg-gray-100"
+                                            key={item.id}
+                                            className="px-4 py-4 border-b border-surface-container-highest active:bg-surface-container"
                                             onPress={() => {
-                                                setSearchIndigena("1 Wayuu");
-                                                setIsListOpen(false);
+                                                setEtnia(item.value);       // Guarda "wayuu" (lo que va a Rust/Postgres)
+                                                setEtniaLabel(item.label);  // Guarda "39 Wayúu (GuaSample)" (lo que ve la UI)
+                                                setIsListOpen(false);       // Cierra el modal
+                                                setSearchIndigena('');      // Limpia el buscador
                                             }}
                                         >
-                                            <Text className="text-on-surface font-body-md">1 Wayuu</Text>
+                                            <Text className="text-on-surface font-body-lg">{item.label}</Text>
                                         </TouchableOpacity>
-                                        <View className="px-4 py-3">
-                                            <Text className="text-on-surface-variant italic text-sm">Fin de los resultados</Text>
+                                    ))}
+
+                                {/* Mensaje en caso de que escriban algo que no exista */}
+                                {ETNIAS_INDIGENAS.filter(item =>
+                                    item.label.toLowerCase().includes(searchIndigena.toLowerCase())
+                                ).length === 0 && (
+                                        <View className="px-4 py-8 items-center">
+                                            <Text className="text-on-surface-variant italic text-sm">No se encontraron etnias coincidentes</Text>
                                         </View>
-                                    </ScrollView>
-                                </View>
-                            )}
+                                    )}
+                            </ScrollView>
                         </View>
-                    )}
-                </View>
+                    </View>
+                </Modal>
 
                 {/* Action Buttons */}
                 <View className="flex flex-row gap-gutter mt-stack-lg mb-8">
@@ -175,6 +300,6 @@ export default function Paso2() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
-        </SafeAreaView >
+        </SafeAreaView>
     );
 }

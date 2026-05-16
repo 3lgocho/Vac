@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-<<<<<<< HEAD
 axum = "0.8.9"
 dotenvy = "0.15.7"
 serde = { version = "1.0.228", features = ["derive"] }
-sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "macros"] }
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "macros", "chrono", "json"] }
 tokio = { version = "1.52.3", features = ["full"] }
-=======
->>>>>>> 6cfde1ecf716dcc85def6f0c66c34e013f28f6b2
+chrono = { version = "0.4", features = ["serde"] }
+serde_json = "1.0"
+tower-http = { version = "0.6.10", features = ["cors"] }

@@ -34,8 +34,8 @@ export default function Paso1() {
 
                 {/* Form Card Surface */}
                 <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter mb-stack-lg">
-                    <View className="flex flex-row gap-4 pb-stack-md">
-                        <MaterialIcons name="id-Card" size={24} className="text-primary" color="#008080" />
+                    <View className="flex flex-row items-center mb-stack-md">
+                        <MaterialIcons name="badge" size={24} className="text-primary mr-2" color="#008080" />
                         <Text className="font-headline-sm text-headline-sm text-on-surface">
                             Datos de Identificación
                         </Text>
@@ -124,10 +124,8 @@ export default function Paso1() {
                 <View className="mt-stack-lg mb-8 flex flex-row justify-end">
                     <TouchableOpacity
                         onPress={() => router.push('/registro/paso2')}
-                        className="h-touch-target-min px-8 bg-primary rounded-lg flex flex-row items-center justify-center gap-2 w-full"
-                    >
+                        className="h-touch-target-min px-8 bg-primary rounded-lg flex flex-row items-center justify-center gap-2 w-full">
                         <Text className="text-on-primary font-label-lg text-label-lg uppercase">Siguiente</Text>
-                        <MaterialIcons name="arrow-forward" size={20} className="text-on-primary" color="white" />
                     </TouchableOpacity>
                 </View>
             </ScrollView>
