@@ -3,7 +3,7 @@ mod models;
 
 use axum::{
     extract::{State, Json},
-    routing::{get, post}, // 1. Agregamos 'get' aquí
+    routing::{get, post},
     Router,
     http::StatusCode,
     response::IntoResponse,
@@ -13,10 +13,8 @@ use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::env;
 use tower_http::cors::CorsLayer;
 
-// 2. Traemos también el struct Paciente
-use crate::models::{CreatePacientePayload, Paciente}; 
+use crate::models::{CreatePacientePayload, Paciente, Biologico};
 
-// Estado de la aplicación para compartir la conexión de DB a los handlers
 #[derive(Clone)]
 struct AppState {
     db: PgPool,
@@ -24,14 +22,11 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    // 1. Cargar variables de entorno del archivo .env
     dotenv().ok();
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada en .env");
     
-    // Configuramos CORS
     let cors = CorsLayer::permissive();
     
-    // 2. Conectar a PostgreSQL
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
@@ -42,22 +37,17 @@ async fn main() {
 
     let state = AppState { db: pool };
 
-    // 3. Crear el Router de Axum
     let app = Router::new()
         .route("/pacientes", post(crear_paciente))
-        .route("/pacientes", get(listar_pacientes)) // <-- NUEVA RUTA GET
-        .layer(cors) // <-- APLICAMOS EL CORS AQUÍ
+        .route("/pacientes", get(listar_pacientes))
+        .route("/biologicos", get(listar_biologicos))
+        .layer(cors)
         .with_state(state);
 
-    // 4. Iniciar el servidor
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     println!("🚀 Servidor corriendo en http://localhost:3000");
     axum::serve(listener, app).await.unwrap();
 }
-
-// ==========================================
-//                 HANDLERS
-// ==========================================
 
 // --- HANDLER POST: Crear Paciente ---
 async fn crear_paciente(
@@ -98,8 +88,7 @@ async fn crear_paciente(
 
     match result {
         Ok(id) => (
-            StatusCode::CREATED
-                .into_response(),
+            StatusCode::CREATED,
             format!("Paciente creado exitosamente con ID: {}", id),
         ),
         Err(e) => {
@@ -113,12 +102,13 @@ async fn crear_paciente(
 }
 
 // --- HANDLER GET: Listar Todos los Pacientes ---
-// Esta función devuelve el JSON que tu React Native espera
 async fn listar_pacientes(
     State(state): State<AppState>,
 ) -> impl IntoResponse {
     let query = r#"
-        SELECT * FROM pacientes ORDER BY created_at DESC
+        SELECT id, cedula, nacionalidad, nombre, apellido, fecha_nacimiento, sexo, 
+               orden_hijo, direccion_comunidad, etnia, grupos_especiales 
+        FROM pacientes ORDER BY id DESC
     "#;
 
     let result = sqlx::query_as::<_, Paciente>(query)
@@ -127,15 +117,52 @@ async fn listar_pacientes(
 
     match result {
         Ok(pacientes) => {
-            // Convertimos el vector de structs a JSON automáticamente
             (StatusCode::OK, Json(pacientes))
         }
         Err(e) => {
             eprintln!("Error listando pacientes: {:?}", e);
             (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                Json(Vec::<Paciente>::new()), // Devolvemos array vacío en caso de error
+                Json(Vec::<Paciente>::new()),
             )
+        }
+    }
+}
+
+// --- HANDLER GET: Listar Biológicos con sus Dosis ---
+async fn listar_biologicos(
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    let query = r#"
+        SELECT 
+            c.id, 
+            c.nombre, 
+            c.descripcion,
+            COALESCE(
+                jsonb_agg(
+                    jsonb_build_object(
+                        'id', e.id,
+                        'nombre_dosis', e.nombre_dosis,
+                        'orden_aplicacion', e.orden_aplicacion
+                    ) ORDER BY e.orden_aplicacion
+                ) FILTER (WHERE e.id IS NOT NULL), '[]'
+            ) AS dosis
+        FROM catalogo_biologicos c
+        LEFT JOIN esquema_dosis e ON c.id = e.biologico_id
+        WHERE c.activo = TRUE
+        GROUP BY c.id, c.nombre, c.descripcion
+        ORDER BY c.id;
+    "#;
+
+    let result = sqlx::query_as::<_, Biologico>(query)
+        .fetch_all(&state.db)
+        .await;
+
+    match result {
+        Ok(biologicos) => (StatusCode::OK, Json(biologicos)),
+        Err(e) => {
+            eprintln!("Error listando biológicos: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(Vec::<Biologico>::new()))
         }
     }
 }

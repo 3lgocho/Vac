@@ -1,12 +1,20 @@
 import { create } from 'zustand';
 
+// --- NUEVA INTERFAZ PARA LAS VACUNAS ---
+export interface VacunaSeleccionada {
+    biologico_id: number;
+    nombre: string;
+    dosis_id: number;
+    nombre_dosis: string;
+}
+
 // 1. Definimos todos los campos de tu formulario
 interface RegistroState {
     // --- Paso 1 ---
     tipoDoc: string;
     cedula: string;
-    nombre: string;    // <-- Agregar
-    apellido: string;  // <-- Agregar
+    nombre: string;
+    apellido: string;
     genero: string;
 
     // --- Paso 2 ---
@@ -14,19 +22,22 @@ interface RegistroState {
     edad: string;
     calle: string;
     numeroCasa: string;
-    comunidad: string;  // <-- Agregar
+    comunidad: string;
     esIndigena: boolean;
     etnia: string;
     etniaLabel: string;
+
     // --- Paso 3 ---
     gruposSeleccionados: string[];
+    vacunasSeleccionadas: VacunaSeleccionada[]; // <-- AÑADIDO
 
     // --- ACCIONES ---
-    // Esta función mágica actualiza CUALQUIER campo pasándole el nombre y el valor
-    updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData'>, value: any) => void;
-
-    // Función específica para la lógica de selección múltiple del Paso 3
+    updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData' | 'addVacuna' | 'removeVacuna'>, value: any) => void;
     toggleGrupo: (grupo: string) => void;
+
+    // Acciones para vacunas
+    addVacuna: (vacuna: VacunaSeleccionada) => void;
+    removeVacuna: (biologico_id: number, dosis_id: number) => void;
 
     // Limpieza
     clearFormData: () => void;
@@ -47,18 +58,16 @@ const initialState = {
     esIndigena: false,
     etnia: '',
     etniaLabel: '',
-    // --- Paso 3 ---
     gruposSeleccionados: [],
+    vacunasSeleccionadas: [], // <-- AÑADIDO
 };
 
 // 3. Creamos el Store
 export const useRegistroStore = create<RegistroState>((set) => ({
     ...initialState,
 
-    // Esta única función reemplaza a decenas de "setDatos"
     updateField: (field, value) => set((state) => ({ ...state, [field]: value })),
 
-    // Mueve la lógica del toggle del Paso 3 directo a la memoria
     toggleGrupo: (grupo) => set((state) => {
         const existe = state.gruposSeleccionados.includes(grupo);
         return {
@@ -68,6 +77,22 @@ export const useRegistroStore = create<RegistroState>((set) => ({
         };
     }),
 
-    // Limpia todo volviendo al estado inicial
+    // --- NUEVAS ACCIONES PARA VACUNAS ---
+    addVacuna: (vacuna) => set((state) => {
+        // Validación: No agregar la misma dosis de la misma vacuna dos veces
+        const existe = state.vacunasSeleccionadas.some(
+            (v) => v.biologico_id === vacuna.biologico_id && v.dosis_id === vacuna.dosis_id
+        );
+        if (existe) return state;
+
+        return { vacunasSeleccionadas: [...state.vacunasSeleccionadas, vacuna] };
+    }),
+
+    removeVacuna: (biologico_id, dosis_id) => set((state) => ({
+        vacunasSeleccionadas: state.vacunasSeleccionadas.filter(
+            (v) => !(v.biologico_id === biologico_id && v.dosis_id === dosis_id)
+        )
+    })),
+
     clearFormData: () => set(initialState),
 }));
