@@ -15,11 +15,14 @@ interface RegistroState {
     cedula: string;
     nombre: string;
     apellido: string;
+    telefono: string;
+    correo: string;
     genero: string;
 
     // --- Paso 2 ---
     fechaNacimiento: string;
     edad: string;
+    ordenHijo: string;
     calle: string;
     numeroCasa: string;
     comunidad: string;
@@ -27,9 +30,12 @@ interface RegistroState {
     etnia: string;
     etniaLabel: string;
 
+
     // --- Paso 3 ---
+
     gruposSeleccionados: string[];
-    vacunasSeleccionadas: VacunaSeleccionada[]; // <-- AÑADIDO
+    vacunasSeleccionadas: VacunaSeleccionada[];
+    alergiasSeleccionadas: AlergiaSeleccionada[]; // <-- AÑADIDO
 
     // --- ACCIONES ---
     updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData' | 'addVacuna' | 'removeVacuna'>, value: any) => void;
@@ -49,9 +55,12 @@ const initialState = {
     cedula: '',
     nombre: '',
     apellido: '',
+    telefono: '',
+    correo: '',
     genero: 'Femenino',
     fechaNacimiento: '',
     edad: '-- años',
+    ordenHijo: '',
     calle: '',
     numeroCasa: '',
     comunidad: '',
@@ -59,7 +68,8 @@ const initialState = {
     etnia: '',
     etniaLabel: '',
     gruposSeleccionados: [],
-    vacunasSeleccionadas: [], // <-- AÑADIDO
+    vacunasSeleccionadas: [],
+    alergiasSeleccionadas: [], // <-- AÑADIDO
 };
 
 // 3. Creamos el Store

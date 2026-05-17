@@ -70,22 +70,40 @@ pub enum GrupoEspecial {
     Otro,
 }
 
+// NUEVO: Estructuras para recibir los arreglos del frontend
+#[derive(Debug, Deserialize)]
+pub struct CreateVacunaDetalle {
+    pub biologico_id: i32,
+    pub dosis_id: i32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateAlergiaDetalle {
+    pub biologico_id: i32, // Solo necesitamos saber a qué biológico es alérgico
+}
+
+// ACTUALIZADO: Se añadieron correo, teléfono y los arreglos
 #[derive(Debug, Deserialize)]
 pub struct CreatePacientePayload {
     pub cedula: String,
     pub nacionalidad: String,
     pub nombre: String,
     pub apellido: String,
+    pub telefono: Option<String>,
+    pub correo: Option<String>,
     pub fecha_nacimiento: NaiveDate,
     pub sexo: String,
-    pub orden_hijo: i32,
+    pub orden_hijo: Option<i32>, // Ahora es Option para manejar campos vacíos
     pub direccion_comunidad: Option<String>,
     pub direccion_calle: Option<String>,
     pub direccion_casa: Option<String>,
     pub etnia: Option<Etnia>,
     pub grupos_especiales: Vec<GrupoEspecial>,
+    pub vacunas: Vec<CreateVacunaDetalle>, // Viene de vacunasSeleccionadas
+    pub alergias: Vec<CreateAlergiaDetalle>, // Viene de alergiasSeleccionadas
 }
 
+// ACTUALIZADO: Reflejo exacto de la tabla de PostgreSQL
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct Paciente {
     pub id: i32,
@@ -93,10 +111,14 @@ pub struct Paciente {
     pub nacionalidad: String,
     pub nombre: String,
     pub apellido: String,
+    pub telefono: Option<String>,
+    pub correo: Option<String>,
     pub fecha_nacimiento: NaiveDate,
     pub sexo: String,
     pub orden_hijo: Option<i32>,
     pub direccion_comunidad: Option<String>,
+    pub direccion_calle: Option<String>,
+    pub direccion_casa: Option<String>,
     pub etnia: Option<String>,
     pub grupos_especiales: Option<serde_json::Value>,
 }

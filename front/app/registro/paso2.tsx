@@ -10,7 +10,7 @@ export default function Paso2() {
 
     // 1. Estados Globales desde Zustand (ahora incluimos la dirección)
     const {
-        esIndigena, etnia, etniaLabel, fechaNacimiento, edad,
+        esIndigena, etnia, etniaLabel, fechaNacimiento, edad, ordenHijo,
         comunidad, calle, numeroCasa,
         updateField
     } = useRegistroStore();
@@ -84,17 +84,6 @@ export default function Paso2() {
                 contentContainerStyle={{ paddingBottom: 150 }}
                 showsVerticalScrollIndicator={true}>
 
-                {/* Progress Indicator */}
-                <View className="mb-stack-lg">
-                    <View className="flex flex-row justify-between items-center mb-stack-sm">
-                        <Text className="font-label-md text-label-md text-on-surface">Paso 2 de 3</Text>
-                        <Text className="font-label-lg text-label-lg text-primary">Datos Personales</Text>
-                    </View>
-                    <View className="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
-                        <View className="h-full bg-primary rounded-full" style={{ width: '66.66%' }}></View>
-                    </View>
-                </View>
-
                 {/* Datos Personales Section */}
                 <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
                     <Text className="font-headline-sm text-on-surface mb-stack-md">Datos Personales</Text>
@@ -118,6 +107,21 @@ export default function Paso2() {
                                 editable={false}
                             />
                         </View>
+                        {/* Orden de hijo */}
+                        <View className="flex flex-col gap-unit">
+                            <Text className="font-label-md text-label-md text-on-surface mb-1">Orden de hijo</Text>
+                            <TextInput
+                                value={ordenHijo}
+                                // Limpiamos todo lo que no sea número en una sola línea
+                                onChangeText={(text) => updateField('ordenHijo', text.replace(/\D/g, ''))}
+                                className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md px-4"
+                                placeholder="Ej. 1"
+                                keyboardType="numeric" // Activa el teclado numérico
+                                maxLength={2} // Un pequeño extra: nadie es el hijo número 100, con 2 dígitos basta
+                            />
+                        </View>
+
+
                     </View>
                 </View>
 
@@ -296,7 +300,7 @@ export default function Paso2() {
                         <Text className="text-on-primary font-label-lg uppercase tracking-wide">Siguiente</Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
-        </SafeAreaView>
+            </ScrollView >
+        </SafeAreaView >
     );
 }

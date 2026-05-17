@@ -48,15 +48,6 @@ export default function Paso3() {
     return (
         <SafeAreaView className="bg-background flex-1">
             <ScrollView className="flex-1 w-full max-w-2xl mx-auto px-margin-mobile mt-stack-lg">
-                <View className="mb-stack-lg bg-surface-container-lowest rounded-xl border border-surface-container-highest p-gutter">
-                    <View className="flex flex-row justify-between items-center mb-stack-sm">
-                        <Text className="font-label-md text-label-md text-on-surface">Paso 3 de 3</Text>
-                        <Text className="font-label-lg text-label-lg text-primary">Inmunización</Text>
-                    </View>
-                    <View className="h-2 w-full bg-secondary-fixed rounded-full overflow-hidden">
-                        <View className="h-full bg-primary w-full rounded-full"></View>
-                    </View>
-                </View>
 
                 <View className="space-y-stack-lg pb-stack-lg gap-6">
                     <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter">
@@ -91,7 +82,7 @@ export default function Paso3() {
                         </View>
                     </View>
 
-                    <View className="px-gutter pb-stack-xl">
+                    <View className="pb-stack-xl">
                         <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter">
                             <View className="flex flex-row items-center mb-stack-md">
                                 <MaterialIcons name="vaccines" size={24} className="text-primary mr-2" color="#008080" />
@@ -105,7 +96,7 @@ export default function Paso3() {
                                     <TouchableOpacity
                                         onPress={() => setIsDropdownVisible(true)}
                                         disabled={loading}
-                                        className="w-full min-h-[48px] bg-surface-container-lowest border border-outline-variant rounded-lg px-4 justify-center flex-row items-center justify-between"
+                                        className="w-full min-h-[48px] bg-surface-container-lowest border border-outline-variant rounded-lg px-4 flex-row items-center justify-between"
                                     >
                                         {loading ? (
                                             <ActivityIndicator size="small" color="#008080" />
