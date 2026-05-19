@@ -1,6 +1,6 @@
+// front/store/registroStore.ts
 import { create } from 'zustand';
 
-// --- NUEVA INTERFAZ PARA LAS VACUNAS ---
 export interface VacunaSeleccionada {
     biologico_id: number;
     nombre: string;
@@ -8,9 +8,12 @@ export interface VacunaSeleccionada {
     nombre_dosis: string;
 }
 
-// 1. Definimos todos los campos de tu formulario
+export interface AlergiaSeleccionada {
+    biologico_id: number;
+    nombre: string;
+}
+
 interface RegistroState {
-    // --- Paso 1 ---
     tipoDoc: string;
     cedula: string;
     nombre: string;
@@ -19,7 +22,6 @@ interface RegistroState {
     correo: string;
     genero: string;
 
-    // --- Paso 2 ---
     fechaNacimiento: string;
     edad: string;
     ordenHijo: string;
@@ -30,26 +32,23 @@ interface RegistroState {
     etnia: string;
     etniaLabel: string;
 
-
-    // --- Paso 3 ---
-
     gruposSeleccionados: string[];
     vacunasSeleccionadas: VacunaSeleccionada[];
-    alergiasSeleccionadas: AlergiaSeleccionada[]; // <-- AÑADIDO
+    tieneAlergia: boolean;
+    alergiasSeleccionadas: AlergiaSeleccionada[];
 
-    // --- ACCIONES ---
-    updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData' | 'addVacuna' | 'removeVacuna'>, value: any) => void;
+    updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData' | 'addVacuna' | 'removeVacuna' | 'addAlergia' | 'removeAlergia'>, value: any) => void;
     toggleGrupo: (grupo: string) => void;
 
-    // Acciones para vacunas
     addVacuna: (vacuna: VacunaSeleccionada) => void;
     removeVacuna: (biologico_id: number, dosis_id: number) => void;
 
-    // Limpieza
+    addAlergia: (alergia: AlergiaSeleccionada) => void;
+    removeAlergia: (biologico_id: number) => void;
+
     clearFormData: () => void;
 }
 
-// 2. Separamos el estado inicial para poder resetearlo fácilmente
 const initialState = {
     tipoDoc: 'V',
     cedula: '',
@@ -69,10 +68,10 @@ const initialState = {
     etniaLabel: '',
     gruposSeleccionados: [],
     vacunasSeleccionadas: [],
-    alergiasSeleccionadas: [], // <-- AÑADIDO
+    tieneAlergia: false,
+    alergiasSeleccionadas: [],
 };
 
-// 3. Creamos el Store
 export const useRegistroStore = create<RegistroState>((set) => ({
     ...initialState,
 
@@ -87,14 +86,11 @@ export const useRegistroStore = create<RegistroState>((set) => ({
         };
     }),
 
-    // --- NUEVAS ACCIONES PARA VACUNAS ---
     addVacuna: (vacuna) => set((state) => {
-        // Validación: No agregar la misma dosis de la misma vacuna dos veces
         const existe = state.vacunasSeleccionadas.some(
             (v) => v.biologico_id === vacuna.biologico_id && v.dosis_id === vacuna.dosis_id
         );
         if (existe) return state;
-
         return { vacunasSeleccionadas: [...state.vacunasSeleccionadas, vacuna] };
     }),
 
@@ -102,6 +98,16 @@ export const useRegistroStore = create<RegistroState>((set) => ({
         vacunasSeleccionadas: state.vacunasSeleccionadas.filter(
             (v) => !(v.biologico_id === biologico_id && v.dosis_id === dosis_id)
         )
+    })),
+
+    addAlergia: (alergia) => set((state) => {
+        const existe = state.alergiasSeleccionadas.some((a) => a.biologico_id === alergia.biologico_id);
+        if (existe) return state;
+        return { alergiasSeleccionadas: [...state.alergiasSeleccionadas, alergia] };
+    }),
+
+    removeAlergia: (biologico_id) => set((state) => ({
+        alergiasSeleccionadas: state.alergiasSeleccionadas.filter((a) => a.biologico_id !== biologico_id)
     })),
 
     clearFormData: () => set(initialState),

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 // CAMBIA ESTO por la IP de tu PC o 10.0.2.2 si es emulador Android
-const API_URL = 'http://192.168.1.X:3000/pacientes';
+const API_URL = 'http://localhost:3000/pacientes';
 
 export const usePacientes = () => {
     const [pacientes, setPacientes] = useState([]);

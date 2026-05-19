@@ -4,14 +4,17 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView, SafeAreaView, Swit
 import { useRouter } from 'expo-router';
 import { ETNIAS_INDIGENAS, EtniaItem } from '../../constants/etnias';
 import { useRegistroStore } from '../../store/registroStore';
+import { GRUPOS_ESPECIALES } from '../../constants/grupos_especiales';
 
 export default function Paso2() {
     const router = useRouter();
 
     // 1. Estados Globales desde Zustand (ahora incluimos la dirección)
     const {
-        esIndigena, etnia, etniaLabel, fechaNacimiento, edad, ordenHijo,
+        esIndigena, etnia, etniaLabel,
         comunidad, calle, numeroCasa,
+        gruposSeleccionados,
+        toggleGrupo,
         updateField
     } = useRegistroStore();
 
@@ -20,61 +23,6 @@ export default function Paso2() {
     const [isListOpen, setIsListOpen] = useState(false);
 
     // Función para calcular la edad exacta conectada a Zustand
-    const calcularEdad = (fecha: string) => {
-        if (fecha.length < 10) {
-            updateField('edad', '-- años');
-            return;
-        }
-
-        const [dia, mes, anio] = fecha.split('/');
-        const fechaNac = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
-        const hoy = new Date();
-
-        if (isNaN(fechaNac.getTime()) || fechaNac > hoy) {
-            updateField('edad', 'Fecha inválida');
-            return;
-        }
-
-        let ageYears = hoy.getFullYear() - fechaNac.getFullYear();
-        const m = hoy.getMonth() - fechaNac.getMonth();
-
-        if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) {
-            ageYears--;
-        }
-
-        if (ageYears > 0) {
-            updateField('edad', `${ageYears} años`);
-        } else {
-            let ageMonths = (hoy.getFullYear() - fechaNac.getFullYear()) * 12 + (hoy.getMonth() - fechaNac.getMonth());
-            if (hoy.getDate() < fechaNac.getDate()) {
-                ageMonths--;
-            }
-
-            if (ageMonths > 0) {
-                updateField('edad', `${ageMonths} meses`);
-            } else {
-                updateField('edad', 'Días de nacido');
-            }
-        }
-    };
-
-    // Función para aplicar la máscara DD/MM/AAAA y guardar en memoria
-    const handleDateChange = (text: string) => {
-        let cleaned = text.replace(/\D/g, '');
-        let formatted = cleaned;
-        if (cleaned.length > 2) {
-            formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-        }
-        if (cleaned.length > 4) {
-            formatted = formatted.slice(0, 5) + '/' + formatted.slice(5, 9);
-        }
-
-        // 1. Guardar fecha formateada
-        updateField('fechaNacimiento', formatted);
-
-        // 2. Calcular edad automáticamente
-        calcularEdad(formatted);
-    };
 
     return (
         <SafeAreaView className="bg-surface flex-1">
@@ -83,47 +31,6 @@ export default function Paso2() {
                 contentContainerClassName="max-w-3xl mx-auto w-full px-margin-mobile pt-stack-lg flex-grow"
                 contentContainerStyle={{ paddingBottom: 150 }}
                 showsVerticalScrollIndicator={true}>
-
-                {/* Datos Personales Section */}
-                <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
-                    <Text className="font-headline-sm text-on-surface mb-stack-md">Datos Personales</Text>
-                    <View className="flex flex-col gap-4 mb-stack-md">
-                        <View className="flex flex-col gap-unit">
-                            <Text className="font-label-lg text-on-surface-variant mb-1">Fecha de Nacimiento</Text>
-                            <TextInput
-                                className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 font-body-md text-on-surface bg-surface-container-lowest"
-                                placeholder="DD/MM/AAAA"
-                                keyboardType="numeric"
-                                maxLength={10}
-                                value={fechaNacimiento}
-                                onChangeText={handleDateChange}
-                            />
-                        </View>
-                        <View className="flex flex-col gap-unit">
-                            <Text className="font-label-lg text-on-surface-variant mb-1">Edad</Text>
-                            <TextInput
-                                className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 bg-surface-container-low text-on-surface-variant font-body-md"
-                                value={edad}
-                                editable={false}
-                            />
-                        </View>
-                        {/* Orden de hijo */}
-                        <View className="flex flex-col gap-unit">
-                            <Text className="font-label-md text-label-md text-on-surface mb-1">Orden de hijo</Text>
-                            <TextInput
-                                value={ordenHijo}
-                                // Limpiamos todo lo que no sea número en una sola línea
-                                onChangeText={(text) => updateField('ordenHijo', text.replace(/\D/g, ''))}
-                                className="h-touch-target-min w-full border rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface font-body-md text-body-md px-4"
-                                placeholder="Ej. 1"
-                                keyboardType="numeric" // Activa el teclado numérico
-                                maxLength={2} // Un pequeño extra: nadie es el hijo número 100, con 2 dígitos basta
-                            />
-                        </View>
-
-
-                    </View>
-                </View>
 
                 {/* Dirección Section */}
                 <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-stack-lg mb-stack-lg">
@@ -290,6 +197,37 @@ export default function Paso2() {
                         </View>
                     </View>
                 </Modal>
+                <View className="bg-surface-container-lowest border border-surface-container-highest rounded-xl p-gutter">
+                    <View className="flex flex-row items-center mb-stack-sm">
+                        <MaterialIcons name="group" size={24} className="text-primary mr-2" color="#008080" />
+                        <Text className="font-headline-sm text-headline-sm text-on-surface">Grupos Especiales</Text>
+                    </View>
+                    <Text className="font-label-md text-on-surface-variant mb-4">Puede seleccionar más de una opción si aplica.</Text>
+
+                    <View className="flex flex-row flex-wrap justify-between gap-y-3">
+                        {GRUPOS_ESPECIALES.map((grupo) => {
+                            const isSelected = gruposSeleccionados.includes(grupo.value);
+                            return (
+                                <TouchableOpacity
+                                    key={grupo.id}
+                                    onPress={() => toggleGrupo(grupo.value)}
+                                    activeOpacity={0.7}
+                                    className={`w-[48%] h-14 px-2 flex flex-row items-center justify-center rounded-xl border ${isSelected ? 'border-primary' : 'border-outline-variant'}`}
+                                >
+                                    <MaterialIcons
+                                        name={isSelected ? "check-box" : "check-box-outline-blank"}
+                                        size={20}
+                                        color={isSelected ? "#008080" : "#9CA3AF"}
+                                        className="mr-2"
+                                    />
+                                    <Text className={`flex-1 font-body-sm text-left leading-tight ${isSelected ? "text-primary" : 'text-on-surface'}`}>
+                                        {grupo.label}
+                                    </Text>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                </View>
 
                 {/* Action Buttons */}
                 <View className="flex flex-row gap-gutter mt-stack-lg mb-8">

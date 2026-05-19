@@ -1,19 +1,20 @@
-// back/src/main.rs
-mod models;
+mod models; // <-- ¡ESTA LÍNEA ES VITAL!
 
 use axum::{
     extract::{State, Json},
     routing::{get, post},
     Router,
-    http::StatusCode,
+    http::{Method, StatusCode},
     response::IntoResponse,
 };
 use dotenvy::dotenv;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::env;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 
 use crate::models::{CreatePacientePayload, Paciente, Biologico};
+
+// ... resto de tu código (AppState, main, etc.)
 
 #[derive(Clone)]
 struct AppState {
@@ -25,7 +26,10 @@ async fn main() {
     dotenv().ok();
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada en .env");
     
-    let cors = CorsLayer::permissive();
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_origin(Any)
+        .allow_headers(Any);
     
     let pool = PgPoolOptions::new()
         .max_connections(5)
@@ -54,6 +58,7 @@ async fn crear_paciente(
     State(state): State<AppState>,
     Json(payload): Json<CreatePacientePayload>,
 ) -> impl IntoResponse {
+    println!("🔍 Auditando Payload recibido:\n{:#?}", payload);
     
     let etnia_str = payload.etnia.map(|e| serde_json::to_string(&e).unwrap().replace("\"", ""));
     let grupos_json = serde_json::to_value(&payload.grupos_especiales).unwrap();
@@ -165,4 +170,4 @@ async fn listar_biologicos(
             (StatusCode::INTERNAL_SERVER_ERROR, Json(Vec::<Biologico>::new()))
         }
     }
-}
+} 
