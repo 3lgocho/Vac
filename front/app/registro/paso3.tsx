@@ -63,7 +63,7 @@ export default function Paso3() {
 
     return (
         <SafeAreaView className="bg-background flex-1">
-            <ScrollView className="flex-1 w-full max-w-2xl mx-auto px-margin-mobile mt-stack-lg">
+            <ScrollView className="flex-1 w-full max-w-3xl mx-auto px-margin-mobile mt-stack-lg">
 
                 <View className="space-y-stack-lg pb-stack-lg gap-6">
 
