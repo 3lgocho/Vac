@@ -1,17 +1,21 @@
-mod models; // <-- ¡ESTA LÍNEA ES VITAL!
+mod handlers;
+mod models;
 
 use axum::{
     Router,
     extract::{Json, State},
     http::{Method, StatusCode},
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use dotenvy::dotenv;
 use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::env;
 use tower_http::cors::{Any, CorsLayer};
 
+use crate::handlers::{
+    get_paciente_perfil, get_pacientes_agenda, get_pacientes_search, update_paciente,
+};
 use crate::models::{Biologico, CreatePacientePayload, Paciente};
 
 // ... resto de tu código (AppState, main, etc.)
@@ -43,7 +47,10 @@ async fn main() {
 
     let app = Router::new()
         .route("/pacientes", post(crear_paciente))
-        .route("/pacientes", get(listar_pacientes))
+        .route("/pacientes/agenda", get(get_pacientes_agenda)) // Nueva ruta para calendario
+        .route("/pacientes/search", get(get_pacientes_search)) // Nueva ruta para búsqueda
+        .route("/pacientes/:id", get(get_paciente_perfil)) // Nueva ruta para perfil
+        .route("/pacientes/:id", put(update_paciente)) // Nueva ruta para editar
         .route("/biologicos", get(listar_biologicos))
         .layer(cors)
         .with_state(state);
@@ -111,7 +118,7 @@ async fn crear_paciente(
 // --- HANDLER GET: Listar Todos los Pacientes ---
 async fn listar_pacientes(State(state): State<AppState>) -> impl IntoResponse {
     let query = r#"
-        SELECT id, cedula, nacionalidad, nombre, apellido, fecha_nacimiento, sexo, 
+        SELECT id, cedula, nacionalidad, nombre, apellido,telefono,correo,fecha_nacimiento, sexo, 
                orden_hijo, direccion_comunidad, etnia, grupos_especiales 
         FROM pacientes ORDER BY id DESC
     "#;
@@ -169,13 +176,4 @@ async fn listar_biologicos(State(state): State<AppState>) -> impl IntoResponse {
             )
         }
     }
-}
-async fn get_pacientes_agenda(Query(params): Query<AgendaParams>) -> impl IntoResponse {
-    // Aquí el backend hace el SELECT con el filtro de fecha
-    // SELECT * FROM pacientes WHERE fecha_cita = $1
-}
-
-async fn get_pacientes_search(Query(params): Query<SearchParams>) -> impl IntoResponse {
-    // Aquí el backend hace el SELECT con un LIKE para el buscador
-    // SELECT * FROM pacientes WHERE nombre LIKE %$1% OR cedula LIKE %$1%
 }

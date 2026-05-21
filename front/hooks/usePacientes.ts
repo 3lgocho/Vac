@@ -1,7 +1,7 @@
 // hooks/usePacientes.ts
 import { useState, useCallback, useEffect } from 'react';
 
-const API_URL = 'http://localhost:3000/pacientes'; // Ajusta a tu IP local
+const API_URL = 'http://localhost:3000/pacientes'; // Ajusta a tu IP local / red
 
 interface PacienteFilters {
     query?: string;
@@ -9,8 +9,22 @@ interface PacienteFilters {
     fechaFin?: string;
 }
 
+// Interfaz que refleja tu backend en Rust
+export interface Paciente {
+    id: number;
+    cedula: string;
+    nacionalidad: string;
+    nombre: string;
+    apellido: string;
+    fecha_nacimiento: string;
+    sexo: string;
+    telefono?: string;
+    correo?: string;
+}
+
 export const usePacientes = (filters: PacienteFilters = {}) => {
-    const [pacientes, setPacientes] = useState([]);
+    // Tipamos el estado
+    const [pacientes, setPacientes] = useState<Paciente[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

@@ -8,24 +8,40 @@ import 'dayjs/locale/es';
 
 dayjs.locale('es');
 
-// --- Datos Simulados (Fake Data) ---
-// Generamos algunas citas estáticas que asociamos a las fechas para probar el filtro
-const generarFakeCitas = (fechaString: string) => {
-    // Si el día es par, retornamos una lista, si es impar, otra (solo para simular cambios)
+// 1. Tipado explícito para corregir el error de FlatList
+type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+
+interface TemaCita {
+    bgSide: string;
+    bgStatus: string;
+    textStatus: string;
+}
+
+interface Cita {
+    id: string;
+    hora: string;
+    estado: string;
+    paciente: string;
+    tipo: string;
+    icono: IconName; // Esto acepta cualquier icono válido
+    tema: TemaCita;
+}
+
+// 2. Asignar el tipo de retorno explícitamente a la función
+const generarFakeCitas = (fechaString: string): Cita[] => {
     const diaNum = dayjs(fechaString).date();
 
     if (diaNum % 2 === 0) {
         return [
-            { id: '1', hora: '09:00 AM', estado: 'Confirmada', paciente: 'Carlos Mendoza', tipo: 'Vacuna COVID-19', icono: 'vaccines' as const, tema: { bgSide: 'bg-primary-container', bgStatus: 'bg-surface-container', textStatus: 'text-primary' } },
-            { id: '2', hora: '10:30 AM', estado: 'Pendiente', paciente: 'Maria Gonzalez', tipo: 'Consulta Pediátrica', icono: 'child-care' as const, tema: { bgSide: 'bg-secondary-container', bgStatus: 'bg-secondary-fixed', textStatus: 'text-secondary' } }
+            { id: '1', hora: '09:00 AM', estado: 'Confirmada', paciente: 'Carlos Mendoza', tipo: 'Vacuna COVID-19', icono: 'vaccines', tema: { bgSide: 'bg-primary-container', bgStatus: 'bg-surface-container', textStatus: 'text-primary' } },
+            { id: '2', hora: '10:30 AM', estado: 'Pendiente', paciente: 'Maria Gonzalez', tipo: 'Consulta Pediátrica', icono: 'child-care', tema: { bgSide: 'bg-secondary-container', bgStatus: 'bg-secondary-fixed', textStatus: 'text-secondary' } }
         ];
     } else {
         return [
-            { id: '3', hora: '02:00 PM', estado: 'Reprogramada', paciente: 'Juan Perez', tipo: 'Evaluación General', icono: 'medical-services' as const, tema: { bgSide: 'bg-tertiary-container', bgStatus: 'bg-tertiary-fixed', textStatus: 'text-tertiary' } }
+            { id: '3', hora: '02:00 PM', estado: 'Reprogramada', paciente: 'Juan Perez', tipo: 'Evaluación General', icono: 'medical-services', tema: { bgSide: 'bg-tertiary-container', bgStatus: 'bg-tertiary-fixed', textStatus: 'text-tertiary' } }
         ];
     }
 };
-
 export default function AgendaScreen() {
     const [vistaActual, setVistaActual] = useState<'dia' | 'semana' | 'mes'>('semana');
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());

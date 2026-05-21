@@ -3,14 +3,19 @@ import { View, Text, TouchableOpacity } from 'react-native';
 
 interface PacienteCardProps {
     nombre: string;
+    apellido: string;
     cedula: string;
     vacuna: string;
     dosis: string;
-    esAtrasada: boolean; // El backend nos dice si la fecha es menor a hoy
+    esAtrasada: boolean;
     onPress: () => void;
 }
 
-export const PacienteCard = ({ nombre, cedula, vacuna, dosis, esAtrasada, onPress }: PacienteCardProps) => {
+export const PacienteCard = ({ nombre, apellido, cedula, vacuna, dosis, esAtrasada, onPress }: PacienteCardProps) => {
+
+    // Obtenemos las iniciales de forma segura. Si vienen undefined, usamos un string vacío ''
+    const iniciales = `${nombre?.[0] || ''}${apellido?.[0] || ''}`.toUpperCase();
+
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -18,12 +23,13 @@ export const PacienteCard = ({ nombre, cedula, vacuna, dosis, esAtrasada, onPres
         >
             {/* Avatar con inicial */}
             <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center mr-4">
-                <Text className="text-blue-600 font-bold text-lg">{nombre[0]}</Text>
+                <Text className="text-blue-600 font-bold text-lg">{iniciales}</Text>
             </View>
 
             {/* Info Principal */}
             <View className="flex-1">
-                <Text className="font-bold text-base">{nombre}</Text>
+                {/* Concatenamos para mostrar el nombre completo */}
+                <Text className="font-bold text-base">{nombre} {apellido}</Text>
                 <Text className="text-gray-500 text-sm">{cedula}</Text>
             </View>
 

@@ -1,10 +1,14 @@
 import React from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { usePacientes } from '../../../hooks/usePacientes';
+import { PacienteCard } from '../../../components/PacienteCard';
 
 export default function PacientesScreen() {
     const router = useRouter();
+    // Consumimos el hook
+    const { pacientes, loading, error } = usePacientes();
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -45,59 +49,32 @@ export default function PacientesScreen() {
                     <TouchableOpacity className="px-4 py-1.5 rounded-full bg-white border border-gray-200 mr-2">
                         <Text className="text-gray-600 font-medium text-xs">Pendientes</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity className="px-4 py-1.5 rounded-full bg-white border border-gray-200 mr-2">
-                        <Text className="text-gray-600 font-medium text-xs">Completados</Text>
-                    </TouchableOpacity>
                 </ScrollView>
             </View>
 
             {/* Main Canvas: Patient List */}
             <ScrollView className="flex-1 px-5 pt-4" contentContainerStyle={{ paddingBottom: 100 }}>
-
-                {/* Patient Card 1: Completado */}
-                <TouchableOpacity
-                    onPress={() => router.push('/pacientes/123')}
-                    className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center gap-3 mb-3 shadow-sm"
-                >
-                    <View className="w-12 h-12 rounded-full bg-teal-50 items-center justify-center shrink-0">
-                        <Text className="text-teal-700 font-bold text-lg">MR</Text>
-                    </View>
-                    <View className="flex-1">
-                        <Text className="font-semibold text-gray-900 text-base" numberOfLines={1}>Maria Rodriguez</Text>
-                        <Text className="text-gray-500 text-sm">V-12.345.678</Text>
-                    </View>
-                    <View className="items-end gap-1">
-                        <View className="bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-100">
-                            <Text className="text-teal-700 text-xs font-medium">Esquema Completo</Text>
-                        </View>
-                        <Text className="text-gray-400 text-xs">Hace 2 días</Text>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Patient Card 2: Pendiente */}
-                <TouchableOpacity
-                    onPress={() => router.push('/pacientes/124')}
-                    className="bg-white border border-gray-200 rounded-xl p-4 flex-row items-center gap-3 mb-3 shadow-sm"
-                >
-                    {/* Reemplazo de foto por iniciales */}
-                    <View className="w-12 h-12 rounded-full bg-blue-50 items-center justify-center shrink-0">
-                        <Text className="text-blue-700 font-bold text-lg">CM</Text>
-                    </View>
-                    <View className="flex-1">
-                        <Text className="font-semibold text-gray-900 text-base" numberOfLines={1}>Carlos Mendoza</Text>
-                        <Text className="text-gray-500 text-sm">V-08.912.345</Text>
-                    </View>
-                    <View className="items-end gap-1">
-                        <View className="bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200">
-                            <Text className="text-gray-700 text-xs font-medium">Pendiente Dosis 2</Text>
-                        </View>
-                        <View className="flex-row items-center gap-1">
-                            <MaterialIcons name="warning" size={14} color="#dc2626" />
-                            <Text className="text-red-600 text-xs font-medium">Atrasado</Text>
-                        </View>
-                    </View>
-                </TouchableOpacity>
-
+                {loading ? (
+                    <ActivityIndicator size="large" color="#008080" className="mt-10" />
+                ) : error ? (
+                    <Text className="text-red-500 text-center mt-10">Error al cargar: {error}</Text>
+                ) : pacientes.length === 0 ? (
+                    <Text className="text-gray-500 text-center mt-10">No hay pacientes registrados aún.</Text>
+                ) : (
+                    pacientes.map((paciente) => (
+                        <PacienteCard
+                            key={paciente.id}
+                            nombre={paciente.nombre}
+                            apellido={paciente.apellido}
+                            cedula={`${paciente.nacionalidad}-${paciente.cedula}`}
+                            // Todo: Estos 3 campos necesitarán un JOIN en Rust para ser reales
+                            vacuna="Por definir"
+                            dosis="N/A"
+                            esAtrasada={false}
+                            onPress={() => router.push(`/pacientes/${paciente.id}`)}
+                        />
+                    ))
+                )}
             </ScrollView>
         </View>
     );
