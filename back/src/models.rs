@@ -137,3 +137,9 @@ pub struct Biologico {
     pub descripcion: Option<String>,
     pub dosis: sqlx::types::Json<Vec<Dosis>>,
 }
+#[derive(Deserialize, Debug)]
+pub struct FiltrosPaciente {
+    pub search: Option<String>,
+    pub fecha_inicio: Option<String>,
+    pub fecha_fin: Option<String>,
+}

@@ -22,7 +22,7 @@ export default function PacientesScreen() {
             </View>
 
             {/* Sticky Search Header */}
-            <View className="bg-white/95 px-5 py-4 border-b border-gray-200 shadow-sm">
+            <View className="bg-white/95 px-5 py-4">
                 <View className="flex-row gap-2 items-center">
                     <View className="flex-1 relative justify-center">
                         <MaterialIcons name="search" size={20} color="#6b7280" className="absolute left-3 z-10" />

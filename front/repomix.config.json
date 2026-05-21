@@ -1,0 +1,20 @@
+{
+    "output": {
+        "filePath": "vac-context.xml",
+        "style": "xml",
+        "removeComments": false
+    },
+    "ignore": {
+        "useGitignore": true,
+        "customPatterns": [
+            "back/target/",
+            "back/Cargo.lock",
+            "front/node_modules/",
+            "front/.expo/",
+            "front/android/",
+            "front/ios/",
+            "front/package-lock.json",
+            "back/respaldo_vac.sql"
+        ]
+    }
+}
