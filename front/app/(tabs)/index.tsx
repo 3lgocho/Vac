@@ -72,7 +72,7 @@ export default function Dashboard() {
                   <MaterialIcons name="vaccines" size={24} className="text-primary" />
                   <Text className="font-label-md text-label-md text-primary">Covid-19</Text>
                 </View>
-                <Text className="font-body-md text-body-md text-outline text-xs mt-1">Hoy, 10:30 AM</Text>
+                <Text className="font-body-md text-body-md text-outline text-xs mt-1">Hoy</Text>
               </View>
             </View>
 

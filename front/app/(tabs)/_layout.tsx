@@ -1,15 +1,25 @@
 // app/(tabs)/_layout.tsx
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 
-// Componente para el ícono adaptado 100% con Tailwind (NativeWind)
-const TabIcon = ({ name, color, focused }: { name: any, color: string, focused: boolean }) => {
+// Componente que imita la estructura de tu HTML
+const TabItem = ({ name, title, focused }: { name: any, title: string, focused: boolean }) => {
     return (
-        <View className={`justify-center items-center p-2 rounded-2xl ${focused ? 'bg-teal-50 shadow-lg shadow-teal-600/40' : ''
+        <View className={`flex flex-col items-center justify-center transition-all ${focused
+                ? 'bg-[#008080] rounded-full px-4 py-1.5 min-w-[4rem]' // Píldora activa (Tu color primary-container)
+                : 'bg-transparent w-16 h-14' // Estado inactivo
             }`}>
-            <MaterialIcons name={name} size={24} color={color} />
+            <MaterialIcons
+                name={name}
+                size={24}
+                color={focused ? '#ffffff' : '#6b7280'} // Blanco si está activo, gris (on-surface-variant) si no
+            />
+            <Text className={`text-[11px] mt-1 ${focused ? 'text-white font-semibold' : 'text-gray-500 font-medium'
+                }`}>
+                {title}
+            </Text>
         </View>
     );
 };
@@ -18,52 +28,46 @@ export default function TabsLayout() {
     return (
         <Tabs screenOptions={{
             headerShown: false,
+            tabBarShowLabel: false, // ¡Clave! Ocultamos el texto por defecto para controlarlo nosotros en TabItem
             tabBarStyle: {
-                height: 75,
+                height: 85, // Ajustado para dar espacio a la píldora
                 backgroundColor: '#ffffff',
-                borderTopWidth: 0,
+                borderTopWidth: 1,
+                borderTopColor: '#e5e7eb', // outline-variant
+                paddingTop: 10,
+                paddingBottom: 15, // Espacio inferior para iOS/Android
+                elevation: 0, // Quitamos sombra extra de Android si queremos el estilo flat del HTML
             },
-            tabBarActiveTintColor: '#008080', // Color Teal principal
-            tabBarInactiveTintColor: '#9ca3af', // Gris inactivo (gray-400)
-            tabBarLabelStyle: {
-                fontSize: 12,
-                fontWeight: '600',
-                paddingBottom: 6,
-            }
         }}>
             <Tabs.Screen
                 name="index"
                 options={{
-                    title: 'Inicio',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon name="home" color={color} focused={focused} />
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="home" title="Inicio" focused={focused} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="agenda/index"
                 options={{
-                    title: 'Agenda',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon name="calendar-month" color={color} focused={focused} />
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="calendar-today" title="Agenda" focused={focused} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="pacientes/index"
                 options={{
-                    title: 'Pacientes',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon name="group" color={color} focused={focused} />
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="groups" title="Pacientes" focused={focused} />
                     ),
                 }}
             />
             <Tabs.Screen
                 name="reportes/index"
                 options={{
-                    title: 'Reportes',
-                    tabBarIcon: ({ color, focused }) => (
-                        <TabIcon name="assignment" color={color} focused={focused} />
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="analytics" title="Reportes" focused={focused} />
                     ),
                 }}
             />

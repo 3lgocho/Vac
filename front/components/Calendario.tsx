@@ -60,7 +60,7 @@ export function Calendario({ vistaActual, setVistaActual, fechaSeleccionada, set
     }, [fechaSeleccionada]);
 
     return (
-        <View className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col mb-4 w-full">
+        <View className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col mb-4 w-full max-h-[400px]">
 
             {/* Controles: Día / Semana / Mes */}
             <View className="flex-row p-1 bg-surface-container-low border-b border-outline-variant/50">
@@ -121,7 +121,7 @@ export function Calendario({ vistaActual, setVistaActual, fechaSeleccionada, set
                                             }`}
                                     >
                                         <Text className={`font-label-lg ${isSelected ? 'text-on-primary font-bold' :
-                                                isHoy ? 'text-primary font-bold' : 'text-on-surface'
+                                            isHoy ? 'text-primary font-bold' : 'text-on-surface'
                                             }`}>
                                             {dia.format('D')}
                                         </Text>
@@ -162,8 +162,8 @@ export function Calendario({ vistaActual, setVistaActual, fechaSeleccionada, set
                                     <View className={`h-10 w-full flex items-center justify-center rounded-full relative ${isSelected ? 'bg-primary shadow-sm' : ''
                                         }`}>
                                         <Text className={`font-body-md text-base ${isSelected ? 'text-on-primary font-bold' :
-                                                isHoy ? 'text-primary font-bold' :
-                                                    !isMesActual ? 'text-outline-variant' : 'text-on-surface'
+                                            isHoy ? 'text-primary font-bold' :
+                                                !isMesActual ? 'text-outline-variant' : 'text-on-surface'
                                             }`}>
                                             {dia.format('D')}
                                         </Text>
