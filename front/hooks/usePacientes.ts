@@ -32,8 +32,7 @@ export const usePacientes = (filters: PacienteFilters = {}) => {
         setLoading(true);
         try {
             const url = new URL(API_URL);
-
-            if (filters.query) url.searchParams.append('search', filters.query);
+            if (filters.query) url.searchParams.append('q', filters.query);
             if (filters.fechaInicio) url.searchParams.append('fecha_inicio', filters.fechaInicio);
             if (filters.fechaFin) url.searchParams.append('fecha_fin', filters.fechaFin);
 

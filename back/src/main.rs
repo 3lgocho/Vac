@@ -46,11 +46,12 @@ async fn main() {
     let state = AppState { db: pool };
 
     let app = Router::new()
-        .route("/pacientes", post(crear_paciente))
-        .route("/pacientes/agenda", get(get_pacientes_agenda)) // Nueva ruta para calendario
-        .route("/pacientes/search", get(get_pacientes_search)) // Nueva ruta para búsqueda
-        .route("/pacientes/:id", get(get_paciente_perfil)) // Nueva ruta para perfil
-        .route("/pacientes/:id", put(update_paciente)) // Nueva ruta para editar
+        .route("/pacientes", post(crear_paciente).get(get_pacientes_search))
+        .route("/pacientes/agenda", get(get_pacientes_agenda))
+        .route(
+            "/pacientes/{id}",
+            get(get_paciente_perfil).put(update_paciente),
+        )
         .route("/biologicos", get(listar_biologicos))
         .layer(cors)
         .with_state(state);
