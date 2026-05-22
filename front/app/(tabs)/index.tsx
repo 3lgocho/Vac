@@ -10,7 +10,7 @@ export default function Dashboard() {
     <SafeAreaView className="bg-background flex-1">
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         {/* Top Section */}
-        <View className="flex flex-row justify-between items-center px-margin-mobile py-stack-md pt-[32px]">
+        <View className="flex flex-row justify-between items-center px-margin-mobile py-stack-md pt-[32px] bg-background">
           <View>
             <Text className="font-headline-md text-headline-md text-on-surface">👋 Hola, Andreina Doe</Text>
           </View>
@@ -50,6 +50,7 @@ export default function Dashboard() {
           </TouchableOpacity>
         </View>
 
+
         {/* Recent Patients Section */}
         <View className="px-margin-mobile">
           <Text className="font-headline-sm text-headline-sm text-on-surface mb-stack-md">Últimos pacientes agregados</Text>
@@ -84,7 +85,7 @@ export default function Dashboard() {
                   <Text className="text-on-secondary-fixed font-label-lg text-label-lg">LR</Text>
                 </View>
                 <View>
-                  <Text className="font-label-lg text-label-lg text-on-surface">Lucia Rodriguez</Text>
+                  <Text className="font-label-lg text-label-lg text-on-surface font-bold text-base">Lucia Rodriguez</Text>
                   <Text className="font-body-md text-body-md text-on-surface-variant text-sm">V-23.456.789</Text>
                 </View>
               </View>
@@ -96,6 +97,8 @@ export default function Dashboard() {
                 <Text className="font-body-md text-body-md text-outline text-xs mt-1">Mañana</Text>
               </View>
             </View>
+
+
 
           </View>
         </View>
