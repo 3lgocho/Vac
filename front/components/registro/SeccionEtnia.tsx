@@ -5,6 +5,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRegistroStore } from '../../store/registroStore';
 import EtniaSearchModal from './modales/EtniaSearchModal';
 
+// Valores exactos que espera el backend en Rust (snake_case)
+const OPCIONES_NO_INDIGENAS = [
+    { label: 'Blanco o Criollo', value: 'blanco_o_criollo' },
+    { label: 'Afrodescendiente', value: 'afrodescendiente' },
+    { label: 'Mestizo', value: 'mestizo' },
+    { label: 'Otro', value: 'otro' }
+];
+
 export default function SeccionEtnia() {
     const { esIndigena, etnia, etniaLabel, updateField } = useRegistroStore();
     const [isListOpen, setIsListOpen] = useState(false);
@@ -23,17 +31,17 @@ export default function SeccionEtnia() {
                 <View className="flex flex-col gap-stack-sm mb-6">
                     <Text className="font-label-lg text-on-surface-variant mb-2">Seleccione una opción</Text>
                     <View className="flex flex-row flex-wrap gap-2">
-                        {['Blanco o Criollo', 'Afrodescendiente', 'Mestizo', 'Otro'].map((opcion) => (
+                        {OPCIONES_NO_INDIGENAS.map((opcion) => (
                             <TouchableOpacity
-                                key={opcion}
-                                onPress={() => updateField('etnia', opcion)}
-                                className={`h-touch-target-min px-4 flex items-center justify-center rounded-full border ${etnia === opcion
+                                key={opcion.value}
+                                onPress={() => updateField('etnia', opcion.value)}
+                                className={`h-touch-target-min px-4 flex items-center justify-center rounded-full border ${etnia === opcion.value
                                     ? 'border-primary bg-primary-container'
                                     : 'border-outline-variant bg-surface-container-lowest'
                                     }`}
                             >
-                                <Text className={`font-body-md ${etnia === opcion ? 'text-on-primary font-bold' : 'text-on-surface'}`}>
-                                    {opcion}
+                                <Text className={`font-body-md ${etnia === opcion.value ? 'text-on-primary font-bold' : 'text-on-surface'}`}>
+                                    {opcion.label}
                                 </Text>
                             </TouchableOpacity>
                         ))}
@@ -51,10 +59,9 @@ export default function SeccionEtnia() {
                     value={esIndigena}
                     onValueChange={(value: boolean) => {
                         updateField('esIndigena', value);
-                        if (!value) {
-                            updateField('etnia', '');
-                            updateField('etniaLabel', '');
-                        }
+                        // Limpiamos la etnia si cambia de estado para evitar guardar datos incongruentes
+                        updateField('etnia', '');
+                        updateField('etniaLabel', '');
                     }}
                     trackColor={{ false: "#D1D5DB", true: "#008080" }}
                     thumbColor={esIndigena ? "#FFFFFF" : "#F3F4F6"}

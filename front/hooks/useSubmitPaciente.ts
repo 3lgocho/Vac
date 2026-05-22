@@ -31,7 +31,7 @@ export const useSubmitPaciente = () => {
             nacionalidad: estadoStore.tipoDoc,
             nombre: estadoStore.nombre,
             apellido: estadoStore.apellido,
-            telefono: estadoStore.telefono || null,
+            telefono: estadoStore.telefono,
             correo: estadoStore.correo || null,
             fecha_nacimiento: fechaNacRust,
             sexo: estadoStore.genero.charAt(0),
@@ -39,7 +39,7 @@ export const useSubmitPaciente = () => {
             direccion_comunidad: estadoStore.comunidad || null,
             direccion_calle: estadoStore.calle || null,
             direccion_casa: estadoStore.numeroCasa || null,
-            etnia: estadoStore.esIndigena ? estadoStore.etnia : null,
+            etnia: estadoStore.etnia || null,
             grupos_especiales: estadoStore.gruposSeleccionados,
             vacunas: estadoStore.vacunasSeleccionadas.map(v => ({
                 biologico_id: v.biologico_id,
