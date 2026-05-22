@@ -26,13 +26,20 @@ pub struct Paciente {
 pub struct PacientePerfilPayload {
     pub paciente: Paciente,
     pub historial: Vec<crate::models::vacuna::VacunaAplicada>,
+    pub alergias: Vec<Alergia>, // <-- Nueva propiedad agregada
 }
 
 // Payload específico para el PUT (Edición de contacto)
 #[derive(Debug, Deserialize)]
 pub struct UpdatePacientePayload {
+    pub cedula: String,
+    pub nombre: String,
+    pub apellido: String,
+    pub fecha_nacimiento: chrono::NaiveDate,
+    pub sexo: String,
     pub telefono: Option<String>,
     pub correo: Option<String>,
+    pub direccion_comunidad: Option<String>,
     pub direccion_calle: Option<String>,
     pub direccion_casa: Option<String>,
 }
@@ -46,4 +53,11 @@ pub struct AgendaParams {
 #[derive(Deserialize, Debug)]
 pub struct SearchParams {
     pub q: Option<String>,
+}
+
+#[derive(Debug, Serialize, sqlx::FromRow)]
+pub struct Alergia {
+    pub id: i32,
+    pub biologico_nombre: String,
+    pub fecha_registro: NaiveDate,
 }

@@ -65,7 +65,7 @@ pub async fn get_paciente_perfil(
     State(state): State<AppState>,
     Path(id): Path<i32>,
 ) -> Result<Json<PacientePerfilPayload>, (StatusCode, String)> {
-    // Buscamos los datos básicos del paciente
+    // 1. Buscar Paciente
     let paciente = sqlx::query_as::<_, Paciente>("SELECT * FROM pacientes WHERE id = $1")
         .bind(id)
         .fetch_optional(&state.db)
@@ -77,38 +77,57 @@ pub async fn get_paciente_perfil(
         None => return Err((StatusCode::NOT_FOUND, "Paciente no encontrado".to_string())),
     };
 
-    // Buscamos su historial de vacunas (JOIN entre vacunas_aplicadas, biologicos y dosis)
+    // 2. Buscar Historial (Corregido a la tabla paciente_vacunas)
     let query_vacunas = r#"
         SELECT 
-            va.id, 
+            pv.id, 
             b.nombre as biologico_nombre, 
             d.nombre_dosis as dosis_nombre, 
-            DATE(va.fecha_aplicacion) as fecha_aplicacion, 
-            va.lote, 
-            va.vacunador 
-        FROM vacunas_aplicadas va
-        JOIN catalogo_biologicos b ON va.biologico_id = b.id
-        JOIN esquema_dosis d ON va.dosis_id = d.id
-        WHERE va.paciente_id = $1
-        ORDER BY va.fecha_aplicacion DESC
+            DATE(pv.fecha_aplicacion) as fecha_aplicacion, 
+            'N/A' as lote, 
+            'N/A' as vacunador 
+        FROM paciente_vacunas pv
+        JOIN catalogo_biologicos b ON pv.biologico_id = b.id
+        JOIN esquema_dosis d ON pv.dosis_id = d.id
+        WHERE pv.paciente_id = $1
+        ORDER BY pv.fecha_aplicacion DESC
     "#;
 
     let historial = sqlx::query_as::<_, VacunaAplicada>(query_vacunas)
         .bind(id)
         .fetch_all(&state.db)
         .await
-        .unwrap_or_else(|_| vec![]); // Retorna vacío si falla o no hay vacunas
+        .unwrap_or_else(|_| vec![]);
 
-    // Devolvemos el Payload unificado que definimos en paciente.rs
+    // 3. Buscar Alergias
+    let query_alergias = r#"
+        SELECT 
+            pa.id,
+            b.nombre as biologico_nombre,
+            DATE(pa.fecha_registro) as fecha_registro
+        FROM paciente_alergias pa
+        JOIN catalogo_biologicos b ON pa.biologico_id = b.id
+        WHERE pa.paciente_id = $1
+        ORDER BY pa.fecha_registro DESC
+    "#;
+
+    let alergias = sqlx::query_as::<_, crate::models::paciente::Alergia>(query_alergias)
+        .bind(id)
+        .fetch_all(&state.db)
+        .await
+        .unwrap_or_else(|_| vec![]);
+
+    // 4. Retornar Payload completo
     Ok(Json(PacientePerfilPayload {
         paciente,
         historial,
+        alergias,
     }))
 }
-
 // =====================================================================
 // 4. HANDLER DE EDICIÓN (PUT para actualizar contacto y dirección)
 // =====================================================================
+// Actualiza la función update_paciente:
 pub async fn update_paciente(
     State(state): State<AppState>,
     Path(id): Path<i32>,
@@ -116,13 +135,21 @@ pub async fn update_paciente(
 ) -> Result<(StatusCode, &'static str), (StatusCode, String)> {
     let query = r#"
         UPDATE pacientes 
-        SET telefono = $1, correo = $2, direccion_calle = $3, direccion_casa = $4
-        WHERE id = $5
+        SET cedula = $1, nombre = $2, apellido = $3, fecha_nacimiento = $4, 
+            sexo = $5, telefono = $6, correo = $7, direccion_comunidad = $8, 
+            direccion_calle = $9, direccion_casa = $10
+        WHERE id = $11
     "#;
 
     let result = sqlx::query(query)
+        .bind(&payload.cedula)
+        .bind(&payload.nombre)
+        .bind(&payload.apellido)
+        .bind(&payload.fecha_nacimiento)
+        .bind(&payload.sexo)
         .bind(&payload.telefono)
         .bind(&payload.correo)
+        .bind(&payload.direccion_comunidad)
         .bind(&payload.direccion_calle)
         .bind(&payload.direccion_casa)
         .bind(id)
