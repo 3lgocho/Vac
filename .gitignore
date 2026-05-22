@@ -7,6 +7,9 @@
 
 # Ignorar variables de entorno
 .env
+
+repomix-output.md
+repomix-output.xml
 =======
 # Ignorar dependencias de Node
 front/node_modules/
