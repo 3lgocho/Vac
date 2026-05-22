@@ -53,6 +53,8 @@ pub struct AgendaParams {
 #[derive(Deserialize, Debug)]
 pub struct SearchParams {
     pub q: Option<String>,
+    pub page: Option<i64>,
+    pub limit: Option<i64>,
 }
 
 #[derive(Debug, Serialize, sqlx::FromRow)]
@@ -60,4 +62,9 @@ pub struct Alergia {
     pub id: i32,
     pub biologico_nombre: String,
     pub fecha_registro: NaiveDate,
+}
+#[derive(Serialize)]
+pub struct PaginatedPacientes {
+    pub data: Vec<Paciente>,
+    pub total: i64,
 }

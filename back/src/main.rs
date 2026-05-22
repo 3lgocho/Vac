@@ -46,8 +46,8 @@ async fn main() {
     let state = AppState { db: pool };
 
     let app = Router::new()
-        .route("/pacientes", post(crear_paciente).get(get_pacientes_search))
-        .route("/pacientes/agenda", get(get_pacientes_agenda))
+        .route("/pacientes", post(crear_paciente).get(get_pacientes_agenda))
+        .route("/pacientes/search", get(get_pacientes_search))
         .route(
             "/pacientes/{id}",
             get(get_paciente_perfil).put(update_paciente),

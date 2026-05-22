@@ -9,8 +9,8 @@ use axum::{
 use crate::{
     AppState,
     models::{
-        AgendaParams, Paciente, PacientePerfilPayload, SearchParams, UpdatePacientePayload,
-        VacunaAplicada,
+        AgendaParams, Paciente, PacientePerfilPayload, PaginatedPacientes, SearchParams,
+        UpdatePacientePayload, VacunaAplicada,
     },
 };
 
@@ -40,22 +40,42 @@ pub async fn get_pacientes_agenda(
 pub async fn get_pacientes_search(
     State(state): State<AppState>,
     Query(params): Query<SearchParams>,
-) -> Result<Json<Vec<Paciente>>, (StatusCode, String)> {
+) -> Result<Json<PaginatedPacientes>, (StatusCode, String)> {
     let search_term = format!("%{}%", params.q.unwrap_or_default());
+    let page = params.page.unwrap_or(1).max(1);
+    let limit = params.limit.unwrap_or(10).min(50); // Nunca devolver más de 50 de golpe
+    let offset = (page - 1) * limit;
 
+    // 1. Contar el total de resultados para el frontend
+    let total_query = r#"
+        SELECT COUNT(*) FROM pacientes 
+        WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR cedula ILIKE $1
+    "#;
+    let total: (i64,) = sqlx::query_as(total_query)
+        .bind(&search_term)
+        .fetch_one(&state.db)
+        .await
+        .unwrap_or((0,));
+
+    // 2. Obtener la página solicitada
     let query = r#"
         SELECT * FROM pacientes 
         WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR cedula ILIKE $1 
-        ORDER BY id DESC LIMIT 50
+        ORDER BY id DESC LIMIT $2 OFFSET $3
     "#;
 
     let pacientes = sqlx::query_as::<_, Paciente>(query)
         .bind(search_term)
+        .bind(limit)
+        .bind(offset)
         .fetch_all(&state.db)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    Ok(Json(pacientes))
+    Ok(Json(PaginatedPacientes {
+        data: pacientes,
+        total: total.0,
+    }))
 }
 
 // =====================================================================
