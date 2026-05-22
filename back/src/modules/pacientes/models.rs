@@ -42,6 +42,8 @@ pub struct UpdatePacientePayload {
     pub direccion_comunidad: Option<String>,
     pub direccion_calle: Option<String>,
     pub direccion_casa: Option<String>,
+    pub etnia: Option<String>,
+    pub grupos_especiales: Option<serde_json::Value>,
 }
 
 // Parámetros limpios separados

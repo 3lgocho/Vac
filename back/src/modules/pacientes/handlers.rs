@@ -160,6 +160,8 @@ pub async fn update_paciente(
         .bind(&payload.direccion_comunidad)
         .bind(&payload.direccion_calle)
         .bind(&payload.direccion_casa)
+        .bind(&payload.etnia)
+        .bind(&payload.grupos_especiales)
         .bind(id)
         .execute(&state.db)
         .await;
