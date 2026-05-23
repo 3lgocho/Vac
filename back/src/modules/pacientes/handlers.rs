@@ -141,12 +141,16 @@ pub async fn update_paciente(
     Path(id): Path<i32>,
     Json(payload): Json<UpdatePacientePayload>,
 ) -> Result<(StatusCode, &'static str), (StatusCode, String)> {
+    let mut tx = state.db.begin().await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al iniciar transacción: {e}")))?;
+
     let query = r#"
         UPDATE pacientes 
         SET cedula = $1, nombre = $2, apellido = $3, fecha_nacimiento = $4, 
             sexo = $5, telefono = $6, correo = $7, direccion_comunidad = $8, 
-            direccion_calle = $9, direccion_casa = $10
-        WHERE id = $11
+            direccion_calle = $9, direccion_casa = $10, etnia = $11, 
+            grupos_especiales = $12
+        WHERE id = $13
     "#;
 
     let result = sqlx::query(query)
@@ -163,12 +167,34 @@ pub async fn update_paciente(
         .bind(&payload.etnia)
         .bind(&payload.grupos_especiales)
         .bind(id)
-        .execute(&state.db)
-        .await;
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error actualizando paciente: {e}")))?;
 
-    match result {
-        Ok(res) if res.rows_affected() > 0 => Ok((StatusCode::OK, "Paciente actualizado")),
-        Ok(_) => Err((StatusCode::NOT_FOUND, "Paciente no encontrado".to_string())),
-        Err(e) => Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string())),
+    if result.rows_affected() == 0 {
+        return Err((StatusCode::NOT_FOUND, "Paciente no encontrado".to_string()));
     }
+
+    // Actualizar alergias dentro de la misma transacción
+    if let Some(alergias) = &payload.alergias {
+        sqlx::query("DELETE FROM paciente_alergias WHERE paciente_id = $1")
+            .bind(id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error eliminando alergias: {e}")))?;
+
+        for bio_id in alergias {
+            sqlx::query("INSERT INTO paciente_alergias (paciente_id, biologico_id) VALUES ($1, $2)")
+                .bind(id)
+                .bind(bio_id)
+                .execute(&mut *tx)
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error insertando alergia: {e}")))?;
+        }
+    }
+
+    tx.commit().await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
+
+    Ok((StatusCode::OK, "Paciente actualizado"))
 }

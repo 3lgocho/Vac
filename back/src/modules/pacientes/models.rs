@@ -29,7 +29,7 @@ pub struct PacientePerfilPayload {
     pub alergias: Vec<Alergia>, // <-- Nueva propiedad agregada
 }
 
-// Payload específico para el PUT (Edición de contacto)
+// Payload para el PUT (Edición de contacto + alergias transaccional)
 #[derive(Debug, Deserialize)]
 pub struct UpdatePacientePayload {
     pub cedula: String,
@@ -44,6 +44,7 @@ pub struct UpdatePacientePayload {
     pub direccion_casa: Option<String>,
     pub etnia: Option<String>,
     pub grupos_especiales: Option<serde_json::Value>,
+    pub alergias: Option<Vec<i32>>,
 }
 
 // Parámetros limpios separados

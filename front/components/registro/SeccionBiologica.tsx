@@ -45,11 +45,11 @@ export default function SeccionBiologica() {
                 {/* Género */}
                 <View className="flex flex-col gap-unit mt-2">
                     <Text className="font-label-md text-label-md text-on-surface mb-1">Género</Text>
-                    <View className="flex flex-row w-full bg-surface-container-low rounded-lg border border-outline-variant p-[2px]">
+                    <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Femenino')}
                             className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Femenino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
-                            <Text className={`font-label-lg text-label-lg ${genero === 'Femenino' ? 'text-primary' : 'text-on-surface-variant'}`}>
+                            <Text className={`font-label-lg font-semibold text-lg ${genero === 'Femenino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                 Femenino
                             </Text>
                         </TouchableOpacity>
@@ -57,7 +57,7 @@ export default function SeccionBiologica() {
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Masculino')}
                             className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Masculino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
-                            <Text className={`font-label-lg text-label-lg ${genero === 'Masculino' ? 'text-primary' : 'text-on-surface-variant'}`}>
+                            <Text className={`font-label-lg font-semibold text-lg ${genero === 'Masculino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                 Masculino
                             </Text>
                         </TouchableOpacity>

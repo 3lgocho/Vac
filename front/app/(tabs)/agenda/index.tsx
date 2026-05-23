@@ -59,19 +59,13 @@ export default function AgendaScreen() {
                 <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full active:bg-surface-container-low">
                     <MaterialIcons name="menu" size={24} color="#3e4949" />
                 </TouchableOpacity>
-                <Text className="font-headline-sm text-lg font-bold text-primary">SISPAI-02</Text>
+                <Text className="text-primary font-semibold text-base tracking-tight">Agenda de Vacunación</Text>
                 <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high">
                     <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} className="w-full h-full" />
                 </TouchableOpacity>
             </View>
 
             <View className="flex-1 px-5 pt-4 max-w-2xl mx-auto w-full">
-                {/* Títulos */}
-                <View className="flex flex-col gap-2 mb-4">
-                    <Text className="font-headline-lg text-3xl font-bold text-on-surface">Agenda de Citas</Text>
-                    <Text className="font-body-md text-base text-on-surface-variant">Revisa y gestiona las citas programadas.</Text>
-                </View>
-
                 {/* Lista de citas y Calendario */}
                 <FlatList
                     data={citasDelDia}

@@ -51,7 +51,7 @@ export default function Dashboard() {
       </View>
 
       {/* Search & Filter Section */}
-      <View className="px-margin-mobile pb-stack-sm">
+      <View className="pb-stack-sm">
         <View className="flex flex-row items-center gap-stack-sm">
           <View className="relative flex-grow justify-center">
             <MaterialIcons name="search" size={24} className="absolute left-3 z-10" color="#4B5563" />
@@ -73,7 +73,7 @@ export default function Dashboard() {
       </View>
 
       {/* Quick Tags (Chips) */}
-      <View className="pl-margin-mobile pb-stack-md">
+      <View className="pb-stack-md">
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <FilterChip label="Todos" value="todos" />
           <FilterChip label="Agendados" value="agendados" />
@@ -81,13 +81,13 @@ export default function Dashboard() {
         </ScrollView>
       </View>
 
-      <View className="px-margin-mobile pb-stack-lg">
+      <View className="pb-stack-lg">
         <TouchableOpacity
           onPress={() => router.push('/registro/paso1')}
           className="w-full h-touch-target-min flex flex-row items-center justify-center gap-2 bg-primary rounded-xl"
         >
-          <MaterialIcons name="person-add" size={24} color="#fff" />
-          <Text className="text-on-primary font-label-lg">AGREGAR NUEVO PACIENTE</Text>
+          <MaterialIcons name="person-add" size={24} className="text-on-primary" color="#fff" />
+          <Text className="text-on-primary font-label-lg text-label-lg">AGREGAR NUEVO PACIENTE</Text>
         </TouchableOpacity>
       </View>
 

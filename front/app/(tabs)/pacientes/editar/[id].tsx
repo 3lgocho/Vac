@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, TextInput, Alert, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 
-// Componentes y Constantes
 import ModalConfirmacionEdicion from '../../../../components/registro/modales/ModalConfirmacionEdicion';
 import ModalExitoEdicion from '../../../../components/registro/modales/ModalExitoEdicion';
+import BiologicosModal from '../../../../components/registro/modales/BiologicosModal';
 import { GRUPOS_ESPECIALES } from '../../../../constants/grupos_especiales';
 
 const parseDateToFrontend = (dateStr: string) => {
@@ -28,28 +28,34 @@ export default function EditarPacienteScreen() {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    // Estados de Modales
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showOverwriteModal, setShowOverwriteModal] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    // Estado local para el formulario (Independiente del estado global)
     const [editForm, setEditForm] = useState<any>({
         nombre: '', apellido: '', cedula: '', sexo: 'M',
         fecha_nacimiento: '', telefono: '', direccion_comunidad: '',
-        direccion_calle: '', direccion_casa: '', etnia: '', grupos_especiales: []
+        direccion_calle: '', direccion_casa: '', etnia: '', grupos_especiales: [],
     });
 
+    const [alergias, setAlergias] = useState<{ biologico_id: number; nombre: string }[]>([]);
+    const [biologicos, setBiologicos] = useState<any[]>([]);
+    const [showAlergiaModal, setShowAlergiaModal] = useState(false);
+
     useEffect(() => {
-        const fetchPaciente = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/pacientes/${id}`);
-                if (res.ok) {
-                    const data = await res.json();
+                const [perfilRes, bioRes] = await Promise.all([
+                    fetch(`http://localhost:3000/pacientes/${id}`),
+                    fetch('http://localhost:3000/biologicos'),
+                ]);
+
+                if (perfilRes.ok) {
+                    const data = await perfilRes.json();
                     const p = data.paciente;
 
-                    // Asegurar que grupos_especiales sea un array al cargar
-                    let gruposFormateados = [];
+                    let gruposFormateados: string[] = [];
                     if (p.grupos_especiales) {
                         gruposFormateados = typeof p.grupos_especiales === 'string'
                             ? JSON.parse(p.grupos_especiales)
@@ -67,8 +73,19 @@ export default function EditarPacienteScreen() {
                         direccion_calle: p.direccion_calle || '',
                         direccion_casa: p.direccion_casa || '',
                         etnia: p.etnia || '',
-                        grupos_especiales: gruposFormateados
+                        grupos_especiales: gruposFormateados,
                     });
+
+                    setAlergias(
+                        (data.alergias || []).map((a: any) => ({
+                            biologico_id: a.biologico_id || a.id,
+                            nombre: a.biologico_nombre,
+                        }))
+                    );
+                }
+
+                if (bioRes.ok) {
+                    setBiologicos(await bioRes.json());
                 }
             } catch (error) {
                 Alert.alert('Error', 'No se pudo cargar el paciente.');
@@ -76,11 +93,11 @@ export default function EditarPacienteScreen() {
                 setLoading(false);
             }
         };
-        fetchPaciente();
+        fetchData();
     }, [id]);
 
     const updateField = (field: string, value: any) => {
-        setEditForm({ ...editForm, [field]: value });
+        setEditForm((prev: any) => ({ ...prev, [field]: value }));
         setIsDirty(true);
     };
 
@@ -93,14 +110,26 @@ export default function EditarPacienteScreen() {
     };
 
     const toggleGrupoEspecial = (grupoValue: string) => {
-        const currentGroups = editForm.grupos_especiales || [];
-        const isSelected = currentGroups.includes(grupoValue);
-
-        const newGroups = isSelected
-            ? currentGroups.filter((g: string) => g !== grupoValue)
-            : [...currentGroups, grupoValue];
-
+        const current = editForm.grupos_especiales || [];
+        const newGroups = current.includes(grupoValue)
+            ? current.filter((g: string) => g !== grupoValue)
+            : [...current, grupoValue];
         updateField('grupos_especiales', newGroups);
+    };
+
+    const addAlergia = (item: { id: number; nombre: string }) => {
+        setAlergias((prev) => {
+            const existe = prev.some((a) => a.biologico_id === item.id);
+            if (existe) return prev;
+            setIsDirty(true);
+            return [...prev, { biologico_id: item.id, nombre: item.nombre }];
+        });
+        setShowAlergiaModal(false);
+    };
+
+    const removeAlergia = (biologico_id: number) => {
+        setAlergias((prev) => prev.filter((a) => a.biologico_id !== biologico_id));
+        setIsDirty(true);
     };
 
     const handleSave = async () => {
@@ -109,21 +138,24 @@ export default function EditarPacienteScreen() {
             const payload = {
                 ...editForm,
                 fecha_nacimiento: parseDateToBackend(editForm.fecha_nacimiento),
-                correo: null, // Forzado nulo según instrucciones
-                grupos_especiales: editForm.grupos_especiales.length > 0 ? editForm.grupos_especiales : null
+                correo: null,
+                grupos_especiales: editForm.grupos_especiales.length > 0 ? editForm.grupos_especiales : null,
+                alergias: alergias.map((a) => a.biologico_id),
             };
 
             const res = await fetch(`http://localhost:3000/pacientes/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
                 setIsDirty(false);
+                setShowOverwriteModal(false);
                 setShowSuccessModal(true);
             } else {
-                Alert.alert("Error", "No se pudo actualizar el paciente.");
+                const body = await res.text();
+                Alert.alert("Error", body || "No se pudo actualizar el paciente.");
             }
         } catch (error) {
             Alert.alert("Error", "Hubo un problema de conexión al guardar.");
@@ -142,168 +174,125 @@ export default function EditarPacienteScreen() {
 
     if (loading) {
         return (
-            <View className="flex-1 items-center justify-center bg-gray-50">
+            <View className="flex-1 items-center justify-center bg-surface">
                 <ActivityIndicator size="large" color="#008080" />
             </View>
         );
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
+        <SafeAreaView className="flex-1 bg-surface">
             {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+            <View className="flex-row items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-surface-container-highest">
                 <TouchableOpacity onPress={handleBack} className="p-2 -ml-2">
                     <MaterialIcons name="close" size={24} color="#374151" />
                 </TouchableOpacity>
-                <Text className="text-lg font-bold text-gray-900">Editar Paciente</Text>
-                <TouchableOpacity onPress={handleSave} disabled={isSaving} className="p-2 -mr-2">
+                <Text className="text-primary font-semibold text-base tracking-tight">Editar Paciente</Text>
+                <TouchableOpacity
+                    onPress={() => setShowOverwriteModal(true)}
+                    disabled={isSaving}
+                    className="p-2 -mr-2"
+                >
                     {isSaving ? (
                         <ActivityIndicator size="small" color="#008080" />
                     ) : (
-                        <Text className="font-bold text-teal-700 text-base">Guardar</Text>
+                        <Text className="font-label-lg font-bold text-primary">Guardar</Text>
                     )}
                 </TouchableOpacity>
             </View>
 
             <ScrollView className="flex-1 px-5 py-6 pb-12" showsVerticalScrollIndicator={false}>
-
                 {/* IDENTIDAD */}
-                <View className="bg-white rounded-xl border border-gray-200 p-4 mb-5 shadow-sm">
+                <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 mb-5">
                     <View className="flex-row items-center mb-4">
                         <MaterialIcons name="person" size={22} color="#008080" />
-                        <Text className="text-gray-900 font-bold ml-2 text-lg">Identidad</Text>
+                        <Text className="font-label-lg text-label-lg text-on-surface ml-2">Identidad</Text>
                     </View>
-                    <View className="space-y-4">
+                    <View className="gap-4">
+                        <EditField label="Nombres" value={editForm.nombre} onChange={(t) => updateField('nombre', t)} />
+                        <EditField label="Apellidos" value={editForm.apellido} onChange={(t) => updateField('apellido', t)} />
+                        <EditField
+                            label="Cédula"
+                            value={editForm.cedula}
+                            onChange={(t) => updateField('cedula', t.replace(/\D/g, ''))}
+                            keyboardType="numeric"
+                        />
                         <View>
-                            <Text className="text-gray-500 text-xs mb-1">Nombres</Text>
-                            <TextInput
-                                value={editForm.nombre}
-                                onChangeText={(t) => updateField('nombre', t)}
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Apellidos</Text>
-                            <TextInput
-                                value={editForm.apellido}
-                                onChangeText={(t) => updateField('apellido', t)}
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Cédula</Text>
-                            <TextInput
-                                value={editForm.cedula}
-                                onChangeText={(t) => updateField('cedula', t.replace(/\D/g, ''))}
-                                keyboardType="numeric"
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Fecha de Nacimiento</Text>
+                            <Text className="text-on-surface-variant font-body-xs mb-1">Fecha de Nacimiento</Text>
                             <TextInput
                                 value={editForm.fecha_nacimiento}
                                 onChangeText={handleDateChange}
                                 keyboardType="numeric"
                                 maxLength={10}
                                 placeholder="DD/MM/YYYY"
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
+                                className="border border-outline-variant rounded-lg px-4 py-3 text-on-surface bg-surface-container-lowest font-body-md"
                             />
                         </View>
                         <View>
-                            <Text className="text-gray-500 text-xs mb-1">Sexo</Text>
-                            <View className="flex-row gap-2 mt-1">
+                            <Text className="text-on-surface-variant font-body-xs mb-1">Género</Text>
+                            <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                                 <TouchableOpacity
                                     onPress={() => updateField('sexo', 'M')}
-                                    className={`flex-1 py-3 rounded-lg border items-center ${editForm.sexo === 'M' ? 'bg-teal-50 border-teal-600' : 'bg-white border-gray-300'}`}
+                                    className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${editForm.sexo === 'M' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
                                 >
-                                    <Text className={editForm.sexo === 'M' ? 'text-teal-700 font-bold' : 'text-gray-600'}>Masculino</Text>
+                                    <Text className={editForm.sexo === 'M' ? 'text-primary font-label-lg font-semibold text-lg' : 'text-on-surface-variant font-label-lg font-semibold text-lg'}>Masculino</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => updateField('sexo', 'F')}
-                                    className={`flex-1 py-3 rounded-lg border items-center ${editForm.sexo === 'F' ? 'bg-teal-50 border-teal-600' : 'bg-white border-gray-300'}`}
+                                    className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${editForm.sexo === 'F' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
                                 >
-                                    <Text className={editForm.sexo === 'F' ? 'text-teal-700 font-bold' : 'text-gray-600'}>Femenino</Text>
+                                    <Text className={editForm.sexo === 'F' ? 'text-primary font-label-lg font-semibold text-lg' : 'text-on-surface-variant font-label-lg font-semibold text-lg'}>Femenino</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
                 </View>
 
-                {/* CONTACTO */}
-                <View className="bg-white rounded-xl border border-gray-200 p-4 mb-5 shadow-sm">
+                {/* CONTACTO Y RESIDENCIA */}
+                <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 mb-5">
                     <View className="flex-row items-center mb-4">
-                        <MaterialIcons name="contact-phone" size={22} color="#008080" />
-                        <Text className="text-gray-900 font-bold ml-2 text-lg">Contacto y Residencia</Text>
+                        <MaterialIcons name="location-on" size={22} color="#008080" />
+                        <Text className="font-label-lg text-label-lg text-on-surface ml-2">Contacto y Residencia</Text>
                     </View>
-                    <View className="space-y-4">
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Teléfono</Text>
-                            <TextInput
-                                value={editForm.telefono}
-                                onChangeText={(t) => {
-                                    let num = t.replace(/\D/g, '');
-                                    if (num.length === 1 && (num === '4' || num === '2')) num = '0' + num;
-                                    updateField('telefono', num);
-                                }}
-                                keyboardType="numeric"
-                                maxLength={11}
-                                placeholder={editForm.telefono || "04141234567"} // Aquí mantenemos la data vieja como placeholder
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Comunidad</Text>
-                            <TextInput
-                                value={editForm.direccion_comunidad}
-                                onChangeText={(t) => updateField('direccion_comunidad', t)}
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Calle / Avenida</Text>
-                            <TextInput
-                                value={editForm.direccion_calle}
-                                onChangeText={(t) => updateField('direccion_calle', t)}
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
-                        <View>
-                            <Text className="text-gray-500 text-xs mb-1">Casa / Apartamento</Text>
-                            <TextInput
-                                value={editForm.direccion_casa}
-                                onChangeText={(t) => updateField('direccion_casa', t)}
-                                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                            />
-                        </View>
+                    <View className="gap-4">
+                        <EditField
+                            label="Teléfono"
+                            value={editForm.telefono}
+                            onChange={(t) => {
+                                let num = t.replace(/\D/g, '');
+                                if (num.length === 1 && (num === '4' || num === '2')) num = '0' + num;
+                                updateField('telefono', num);
+                            }}
+                            keyboardType="numeric"
+                            maxLength={11}
+                        />
+                        <EditField label="Comunidad" value={editForm.direccion_comunidad} onChange={(t) => updateField('direccion_comunidad', t)} />
+                        <EditField label="Calle / Avenida" value={editForm.direccion_calle} onChange={(t) => updateField('direccion_calle', t)} />
+                        <EditField label="Casa / Apartamento" value={editForm.direccion_casa} onChange={(t) => updateField('direccion_casa', t)} />
                     </View>
                 </View>
 
                 {/* ETNIA */}
-                <View className="bg-white rounded-xl border border-gray-200 p-4 mb-5 shadow-sm">
+                <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 mb-5">
                     <View className="flex-row items-center mb-4">
                         <MaterialIcons name="public" size={22} color="#008080" />
-                        <Text className="text-gray-900 font-bold ml-2 text-lg">Etnia</Text>
+                        <Text className="font-label-lg text-label-lg text-on-surface ml-2">Etnia</Text>
                     </View>
-                    <View>
-                        <Text className="text-gray-500 text-xs mb-1">Nombre de la Etnia (Opcional)</Text>
-                        <TextInput
-                            value={editForm.etnia}
-                            onChangeText={(t) => updateField('etnia', t)}
-                            placeholder="Ej. Wayuu, Pemon..."
-                            className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50"
-                        />
-                    </View>
+                    <EditField
+                        label="Nombre de la Etnia (Opcional)"
+                        value={editForm.etnia}
+                        onChange={(t) => updateField('etnia', t)}
+                        placeholder="Ej. Wayuu, Pemon..."
+                    />
                 </View>
 
                 {/* GRUPOS ESPECIALES */}
-                <View className="bg-white rounded-xl border border-gray-200 p-4 mb-10 shadow-sm">
+                <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 mb-5">
                     <View className="flex-row items-center mb-2">
                         <MaterialIcons name="group" size={22} color="#008080" />
-                        <Text className="text-gray-900 font-bold ml-2 text-lg">Grupos Especiales</Text>
+                        <Text className="font-label-lg text-label-lg text-on-surface ml-2">Grupos Especiales</Text>
                     </View>
-                    <Text className="text-gray-500 text-sm mb-4">Puede seleccionar más de una opción si aplica.</Text>
-
+                    <Text className="text-on-surface-variant font-body-sm mb-4">Puede seleccionar más de una opción si aplica.</Text>
                     <View className="flex-row flex-wrap justify-between gap-y-3">
                         {GRUPOS_ESPECIALES.map((grupo) => {
                             const isSelected = editForm.grupos_especiales?.includes(grupo.value);
@@ -312,21 +301,49 @@ export default function EditarPacienteScreen() {
                                     key={grupo.id}
                                     onPress={() => toggleGrupoEspecial(grupo.value)}
                                     activeOpacity={0.7}
-                                    className={`w-[48%] h-14 px-2 flex-row items-center justify-center rounded-xl border ${isSelected ? 'border-teal-600 bg-teal-50' : 'border-gray-300 bg-white'}`}
+                                    className={`w-[48%] h-14 px-2 flex-row items-center justify-center rounded-xl border ${isSelected ? 'border-primary bg-primary-container' : 'border-outline-variant'}`}
                                 >
                                     <MaterialIcons
                                         name={isSelected ? "check-box" : "check-box-outline-blank"}
                                         size={20}
-                                        color={isSelected ? "#0d9488" : "#9CA3AF"}
-                                        className="mr-2"
+                                        color={isSelected ? "#008080" : "#9CA3AF"}
                                     />
-                                    <Text className={`flex-1 text-sm font-medium leading-tight ${isSelected ? "text-teal-800" : 'text-gray-700'}`}>
+                                    <Text className={`flex-1 font-body-sm text-left ml-1 leading-tight ${isSelected ? "text-primary" : 'text-on-surface'}`}>
                                         {grupo.label}
                                     </Text>
                                 </TouchableOpacity>
                             );
                         })}
                     </View>
+                </View>
+
+                {/* ALERGIAS */}
+                <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 mb-10">
+                    <View className="flex-row items-center mb-4">
+                        <MaterialIcons name="medical-information" size={22} color="#B3261E" />
+                        <Text className="font-label-lg text-label-lg text-on-surface ml-2">Alergias</Text>
+                    </View>
+
+                    <TouchableOpacity
+                        onPress={() => setShowAlergiaModal(true)}
+                        className="w-full min-h-[48px] border border-error rounded-lg px-4 flex-row items-center justify-between mb-4"
+                    >
+                        <Text className="text-on-surface font-body-md">Agregar alergia a biológico...</Text>
+                        <MaterialIcons name="add" size={24} color="#B3261E" />
+                    </TouchableOpacity>
+
+                    {alergias.length === 0 ? (
+                        <Text className="text-on-surface-variant font-body-md text-center py-4">No hay alergias registradas</Text>
+                    ) : (
+                        alergias.map((alergia) => (
+                            <View key={alergia.biologico_id} className="flex-row items-center justify-between bg-error-container border border-error rounded-lg p-3 mb-2">
+                                <Text className="text-on-error-container font-label-md flex-1">{alergia.nombre}</Text>
+                                <TouchableOpacity onPress={() => removeAlergia(alergia.biologico_id)} className="w-10 h-10 items-center justify-center rounded-full bg-white/50">
+                                    <MaterialIcons name="close" size={20} color="#B3261E" />
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                    )}
                 </View>
             </ScrollView>
 
@@ -339,13 +356,73 @@ export default function EditarPacienteScreen() {
                     router.back();
                 }}
             />
+
+            <ModalSobrescribir
+                visible={showOverwriteModal}
+                onClose={() => setShowOverwriteModal(false)}
+                onConfirm={handleSave}
+            />
+
             <ModalExitoEdicion
                 visible={showSuccessModal}
                 onConfirm={() => {
                     setShowSuccessModal(false);
-                    router.back(); // Regresamos al perfil, el cual volverá a hacer fetch con los datos nuevos
+                    router.back();
                 }}
             />
+
+            <BiologicosModal
+                visible={showAlergiaModal}
+                onClose={() => setShowAlergiaModal(false)}
+                biologicos={biologicos}
+                titulo="Seleccione Biológico (Alergia)"
+                tituloClassName="text-error"
+                onSelect={addAlergia}
+            />
         </SafeAreaView>
+    );
+}
+
+function EditField({
+    label, value, onChange, placeholder, keyboardType, maxLength
+}: {
+    label: string; value: string; onChange: (t: string) => void; placeholder?: string; keyboardType?: any; maxLength?: number;
+}) {
+    return (
+        <View>
+            <Text className="text-on-surface-variant font-body-xs mb-1">{label}</Text>
+            <TextInput
+                value={value}
+                onChangeText={onChange}
+                keyboardType={keyboardType}
+                maxLength={maxLength}
+                placeholder={placeholder}
+                className="border border-outline-variant rounded-lg px-4 py-3 text-on-surface bg-surface-container-lowest font-body-md"
+            />
+        </View>
+    );
+}
+
+function ModalSobrescribir({ visible, onClose, onConfirm }: { visible: boolean; onClose: () => void; onConfirm: () => void }) {
+    return (
+        <Modal visible={visible} transparent animationType="fade">
+            <View className="flex-1 justify-center items-center bg-black/50 px-5">
+                <View className="bg-surface w-full rounded-2xl p-6 items-center shadow-xl">
+                    <MaterialIcons name="warning-amber" size={48} color="#f59e0b" />
+                    <Text className="text-xl font-bold text-on-surface mb-2 text-center mt-4">¿Está seguro de sobreescribir estos datos?</Text>
+                    <Text className="text-on-surface-variant text-center mb-6">
+                        Se actualizarán los datos del paciente con la información ingresada. Esta acción no se puede deshacer.
+                    </Text>
+                    <View className="flex-row gap-4 w-full">
+                        <TouchableOpacity onPress={onClose} className="flex-1 py-3 rounded-lg border border-outline-variant items-center">
+                            <Text className="text-on-surface font-semibold">Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onConfirm} className="flex-1 py-3 rounded-lg items-center bg-primary">
+                            <Text className="text-white font-semibold">Sobrescribir</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
+        </Modal>
     );
 }

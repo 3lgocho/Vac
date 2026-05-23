@@ -34,7 +34,7 @@ export function ProgressBarRegistro() {
     });
 
     return (
-        <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-gutter mt-4 mb-2 w-full max-w-4xl mx-auto">
+        <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-gutter mt-4 mb-2 w-full max-w-4xl m-margin-mobile">
             <View className="flex flex-row justify-between items-center mb-stack-sm">
                 <Text className="font-label-md text-label-md text-on-surface">Paso {pasoActual} de 3</Text>
                 <Text className="font-label-lg text-label-lg text-primary">{titulo}</Text>

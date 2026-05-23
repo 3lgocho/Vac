@@ -47,7 +47,7 @@ export function TopBarRegistro() {
                 </TouchableOpacity>
 
                 {/* CENTRO: Título */}
-                <Text className="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">
+                <Text className="text-primary font-semibold text-base tracking-tight">
                     Registro de Vacunación
                 </Text>
 
@@ -94,7 +94,7 @@ export function TopBarRegistro() {
                                 onPress={confirmExit}
                                 className="flex-1 py-3 rounded-lg bg-error items-center justify-center"
                             >
-                                <Text className="text-on-error font-label-lg font-bold text-white">Sí, Salir</Text>
+                                <Text className=" font-label-lg font-bold text-white">Sí, Salir</Text>
                             </TouchableOpacity>
                         </View>
 
