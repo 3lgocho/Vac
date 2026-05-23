@@ -17,6 +17,7 @@ use crate::modules::{
     },
     registro::handlers::crear_paciente,
     vacunas::handlers::listar_biologicos,
+    validador::handlers::evaluar_esquema,
 };
 
 #[derive(Clone)]
@@ -54,6 +55,7 @@ async fn main() {
             get(get_paciente_perfil).put(update_paciente),
         )
         .route("/biologicos", get(listar_biologicos))
+        .route("/validador/esquema", post(evaluar_esquema))
         .layer(cors)
         .with_state(state);
 

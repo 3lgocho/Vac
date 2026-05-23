@@ -272,13 +272,20 @@ ALTER TABLE ONLY public.paciente_vacunas ALTER COLUMN id SET DEFAULT nextval('pu
 
 COPY public.catalogo_biologicos (id, nombre, descripcion, activo) FROM stdin;
 1	BCG	Prevención de Tuberculosis (Recién nacidos)	t
-2	Hepatitis B (Pediátrica)	Prevención de Hepatitis B (Recién nacidos)	t
+2	Hepatitis B	Prevención de Hepatitis B (3 dosis: recién nacidos, 1 y 6 meses)	t
 3	Rotavirus	Prevención de diarreas severas	t
 4	Pentavalente	Difteria, Tétanos, Tos ferina, Hep B, Haemophilus influenzae b	t
-5	Polio (IPV/bOPV)	Prevención de la Poliomielitis	t
+5	Polio Inyectable	Prevención de la Poliomielitis (Vacuna Inactivada)	t
 6	Fiebre Amarilla	Prevención Antiamarílica	t
 7	SRP	Sarampión, Rubeola, Parotiditis (Triple Viral)	t
 8	Toxoide Tetánico Diftérico (TTD)	Prevención de Tétanos y Difteria (Embarazadas/Adultos)	t
+9	Neumococo 13 Valente	Prevención de enfermedades neumocócicas (13 serotipos)	t
+10	Polio Oral	Prevención de la Poliomielitis (Vacuna Oral)	t
+11	Influenza Estacional	Prevención de la Influenza Estacional	t
+12	Neumococo 23 Valente	Prevención de enfermedades neumocócicas (23 serotipos)	t
+13	Meningocócica B-C	Prevención de enfermedad meningocócica	t
+14	Rabia Humana (Pre-exposición)	Prevención de la Rabia (Pre-exposición)	t
+15	Rabia Humana (Post-exposición)	Prevención de la Rabia (Post-exposición)	t
 \.
 
 
@@ -288,19 +295,62 @@ COPY public.catalogo_biologicos (id, nombre, descripcion, activo) FROM stdin;
 
 COPY public.esquema_dosis (id, biologico_id, nombre_dosis, orden_aplicacion) FROM stdin;
 1	1	DU	1
-2	2	DU	1
 3	3	1D	1
 4	3	2D	2
 5	4	1D	1
 6	4	2D	2
 7	4	3D	3
-8	5	1D	1
-9	5	2D	2
-10	5	3D	3
-11	5	1REF	4
-12	5	2REF	5
 13	7	1D	1
 14	7	1REF	2
+15	6	DU	1
+17	2	1D	1
+18	2	2D	2
+19	2	3D	3
+20	4	1REF	4
+21	4	2REF	5
+22	4	DA	6
+23	5	1D	1
+24	5	2D	2
+25	5	3D	3
+26	7	2D	3
+27	7	DA	4
+28	8	1D	1
+29	8	2D	2
+30	8	3D	3
+31	8	1REF	4
+32	8	2REF	5
+33	8	3REF	6
+34	8	DA	7
+35	9	1D	1
+36	9	2D	2
+37	9	3D	3
+38	9	1REF	4
+39	9	2REF	5
+40	9	DA	6
+41	10	1D	1
+42	10	2D	2
+43	10	3D	3
+44	10	1REF	4
+45	10	2REF	5
+46	10	DA	6
+47	11	1D	1
+48	11	2D	2
+49	11	1REF	3
+50	11	DA	4
+51	12	1D	1
+52	12	1REF	2
+53	13	1D	1
+54	13	2D	2
+55	14	1D	1
+56	14	2D	2
+57	14	3D	3
+58	15	1D	1
+59	15	2D	2
+60	15	3D	3
+61	15	4D	4
+62	15	5D	5
+63	15	6D	6
+64	15	7D	7
 \.
 
 
@@ -348,14 +398,14 @@ COPY public.registro_vacunacion (id, paciente_id, lote_id, dosis_aplicada, respo
 -- Name: catalogo_biologicos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vac_admin
 --
 
-SELECT pg_catalog.setval('public.catalogo_biologicos_id_seq', 8, true);
+SELECT pg_catalog.setval('public.catalogo_biologicos_id_seq', 15, true);
 
 
 --
 -- Name: esquema_dosis_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vac_admin
 --
 
-SELECT pg_catalog.setval('public.esquema_dosis_id_seq', 14, true);
+SELECT pg_catalog.setval('public.esquema_dosis_id_seq', 64, true);
 
 
 --
