@@ -103,7 +103,7 @@ export default function PacientePerfilScreen() {
                         </View>
                         <View className="bg-surface-container-low py-1 px-3 rounded-full">
                             <Text className="text-on-surface-variant font-body-md">
-                                {paciente.sexo === 'M' ? 'Masculino' : 'Femenino'}
+                                {paciente.genero}
                             </Text>
                         </View>
                     </View>
@@ -192,7 +192,7 @@ export default function PacientePerfilScreen() {
                                     <InfoRow label="Nombre Completo" value={`${paciente.nombre} ${paciente.apellido}`} />
                                     <InfoRow label="Cédula" value={`${paciente.nacionalidad}-${paciente.cedula}`} />
                                     <InfoRow label="Fecha de Nacimiento" value={parseDateToFrontend(paciente.fecha_nacimiento)} />
-                                    <InfoRow label="Sexo" value={paciente.sexo === 'M' ? 'Masculino' : 'Femenino'} />
+                                    <InfoRow label="Género" value={paciente.genero} />
                                     <InfoRow label="Orden de Hijo" value={paciente.orden_hijo ? `Hijo #${paciente.orden_hijo}` : 'No registrado'} />
                                 </View>
                             </View>
@@ -203,13 +203,15 @@ export default function PacientePerfilScreen() {
                                     <MaterialIcons name="location-on" size={20} color="#008080" />
                                     <Text className="font-label-lg text-label-lg text-on-surface ml-2">Contacto y Residencia</Text>
                                 </View>
-                                <InfoRow label="Teléfono" value={paciente.telefono || 'No registrado'} />
-                                <InfoRow
-                                    label="Dirección"
-                                    value={[paciente.direccion_comunidad, paciente.direccion_calle, paciente.direccion_casa]
-                                        .filter(Boolean)
-                                        .join(', ') || 'No registrada'}
-                                />
+                                <View className="gap-3">
+                                    <InfoRow label="Teléfono" value={paciente.telefono || 'No registrado'} />
+                                    <InfoRow
+                                        label="Dirección"
+                                        value={[paciente.direccion_comunidad, paciente.direccion_calle, paciente.direccion_casa]
+                                            .filter(Boolean)
+                                            .join(', ') || 'No registrada'}
+                                    />
+                                </View>
                             </View>
 
                             {/* Etnia */}

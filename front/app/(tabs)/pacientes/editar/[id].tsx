@@ -34,7 +34,7 @@ export default function EditarPacienteScreen() {
     const [isDirty, setIsDirty] = useState(false);
 
     const [editForm, setEditForm] = useState<any>({
-        nombre: '', apellido: '', cedula: '', sexo: 'M',
+        nombre: '', apellido: '', cedula: '', genero: 'Femenino',
         fecha_nacimiento: '', telefono: '', direccion_comunidad: '',
         direccion_calle: '', direccion_casa: '', etnia: '', grupos_especiales: [],
     });
@@ -66,7 +66,7 @@ export default function EditarPacienteScreen() {
                         nombre: p.nombre || '',
                         apellido: p.apellido || '',
                         cedula: p.cedula || '',
-                        sexo: p.sexo || 'M',
+                        genero: p.genero || 'Femenino',
                         fecha_nacimiento: parseDateToFrontend(p.fecha_nacimiento),
                         telefono: p.telefono || '',
                         direccion_comunidad: p.direccion_comunidad || '',
@@ -232,16 +232,16 @@ export default function EditarPacienteScreen() {
                             <Text className="text-on-surface-variant font-body-xs mb-1">Género</Text>
                             <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                                 <TouchableOpacity
-                                    onPress={() => updateField('sexo', 'M')}
-                                    className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${editForm.sexo === 'M' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
+                                    onPress={() => updateField('genero', 'Femenino')}
+                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Femenino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
                                 >
-                                    <Text className={editForm.sexo === 'M' ? 'text-primary font-label-lg font-semibold text-lg' : 'text-on-surface-variant font-label-lg font-semibold text-lg'}>Masculino</Text>
+                                    <Text className={editForm.genero === 'Femenino' ? 'text-primary font-label-lg font-semibold text-md' : 'text-on-surface-variant font-label-lg font-semibold text-md'}>Femenino</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    onPress={() => updateField('sexo', 'F')}
-                                    className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${editForm.sexo === 'F' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
+                                    onPress={() => updateField('genero', 'Masculino')}
+                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Masculino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
                                 >
-                                    <Text className={editForm.sexo === 'F' ? 'text-primary font-label-lg font-semibold text-lg' : 'text-on-surface-variant font-label-lg font-semibold text-lg'}>Femenino</Text>
+                                    <Text className={editForm.genero === 'Masculino' ? 'text-primary font-label-lg font-semibold text-md' : 'text-on-surface-variant font-label-lg font-semibold text-md'}>Masculino</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

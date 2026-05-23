@@ -1,7 +1,7 @@
 use crate::modules::vacunas::models::VacunaAplicada;
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
-// Reflejo exacto de la tabla de PostgreSQL para consultas generales (Cards y Listas)
+
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct Paciente {
     pub id: i32,
@@ -12,7 +12,7 @@ pub struct Paciente {
     pub telefono: Option<String>,
     pub correo: Option<String>,
     pub fecha_nacimiento: NaiveDate,
-    pub sexo: String,
+    pub genero: String,
     pub orden_hijo: Option<i32>,
     pub direccion_comunidad: Option<String>,
     pub direccion_calle: Option<String>,
@@ -21,22 +21,20 @@ pub struct Paciente {
     pub grupos_especiales: Option<serde_json::Value>,
 }
 
-// Estructura que agrupa al paciente con sus vacunas (Reutiliza la estructura Paciente)
 #[derive(Debug, Serialize)]
 pub struct PacientePerfilPayload {
     pub paciente: Paciente,
     pub historial: Vec<VacunaAplicada>,
-    pub alergias: Vec<Alergia>, // <-- Nueva propiedad agregada
+    pub alergias: Vec<Alergia>,
 }
 
-// Payload para el PUT (Edición de contacto + alergias transaccional)
 #[derive(Debug, Deserialize)]
 pub struct UpdatePacientePayload {
     pub cedula: String,
     pub nombre: String,
     pub apellido: String,
     pub fecha_nacimiento: chrono::NaiveDate,
-    pub sexo: String,
+    pub genero: String,
     pub telefono: Option<String>,
     pub correo: Option<String>,
     pub direccion_comunidad: Option<String>,
@@ -47,7 +45,6 @@ pub struct UpdatePacientePayload {
     pub alergias: Option<Vec<i32>>,
 }
 
-// Parámetros limpios separados
 #[derive(Deserialize, Debug)]
 pub struct AgendaParams {
     pub fecha: String,
@@ -63,9 +60,11 @@ pub struct SearchParams {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct Alergia {
     pub id: i32,
+    pub biologico_id: i32,
     pub biologico_nombre: String,
     pub fecha_registro: NaiveDate,
 }
+
 #[derive(Serialize)]
 pub struct PaginatedPacientes {
     pub data: Vec<Paciente>,

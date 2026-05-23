@@ -44,7 +44,7 @@ export default function SeccionBiologica() {
 
                 {/* Género */}
                 <View className="flex flex-col gap-unit mt-2">
-                    <Text className="font-label-md text-label-md text-on-surface mb-1">Género</Text>
+                    <Text className="font-label-md text-label-md text-on-surface mb-1">Sexo</Text>
                     <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Femenino')}

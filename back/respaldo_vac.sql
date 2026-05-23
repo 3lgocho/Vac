@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict dKp1f01tp5ixtobCTDEU5ktbQykeyJtcpF6L4jbFyeZ1W5KTMj1HOyaZd3alVsi
+\restrict CZVE1szyf3RXLBCKGw7vhEeL3oXv1DtPoQgcOhuQaBB8UFUH3ytDwqIPVMNkxoo
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -18,6 +18,20 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
 
 SET default_tablespace = '';
 
@@ -193,10 +207,10 @@ CREATE TABLE public.pacientes (
     nombre character varying(100) NOT NULL,
     apellido character varying(100) NOT NULL,
     fecha_nacimiento date NOT NULL,
-    sexo character varying(1) NOT NULL,
+    genero character varying(20) CONSTRAINT pacientes_sexo_not_null NOT NULL,
     orden_hijo integer,
     direccion_comunidad character varying(150),
-    direccion_calle character varying(100),
+    direccion_calle character varying(150),
     direccion_casa character varying(50),
     etnia character varying(100),
     grupos_especiales jsonb DEFAULT '[]'::jsonb,
@@ -272,13 +286,13 @@ ALTER TABLE ONLY public.paciente_vacunas ALTER COLUMN id SET DEFAULT nextval('pu
 
 COPY public.catalogo_biologicos (id, nombre, descripcion, activo) FROM stdin;
 1	BCG	Prevención de Tuberculosis (Recién nacidos)	t
-2	Hepatitis B	Prevención de Hepatitis B (3 dosis: recién nacidos, 1 y 6 meses)	t
 3	Rotavirus	Prevención de diarreas severas	t
 4	Pentavalente	Difteria, Tétanos, Tos ferina, Hep B, Haemophilus influenzae b	t
-5	Polio Inyectable	Prevención de la Poliomielitis (Vacuna Inactivada)	t
 6	Fiebre Amarilla	Prevención Antiamarílica	t
 7	SRP	Sarampión, Rubeola, Parotiditis (Triple Viral)	t
 8	Toxoide Tetánico Diftérico (TTD)	Prevención de Tétanos y Difteria (Embarazadas/Adultos)	t
+2	Hepatitis B	Prevención de Hepatitis B (3 dosis: recién nacidos, 1 y 6 meses)	t
+5	Polio Inyectable	Prevención de la Poliomielitis (Vacuna Inactivada)	t
 9	Neumococo 13 Valente	Prevención de enfermedades neumocócicas (13 serotipos)	t
 10	Polio Oral	Prevención de la Poliomielitis (Vacuna Oral)	t
 11	Influenza Estacional	Prevención de la Influenza Estacional	t
@@ -367,6 +381,15 @@ COPY public.lotes_biologicos (id, nombre_biologico, numero_lote, fecha_vencimien
 --
 
 COPY public.paciente_alergias (id, paciente_id, biologico_id, fecha_registro) FROM stdin;
+2	25	6	2026-05-22
+3	26	4	2026-05-22
+4	27	7	2026-05-22
+5	28	7	2026-05-22
+6	29	5	2026-05-22
+7	30	6	2026-05-22
+8	32	6	2026-05-22
+15	34	12	2026-05-23
+16	34	11	2026-05-23
 \.
 
 
@@ -375,6 +398,16 @@ COPY public.paciente_alergias (id, paciente_id, biologico_id, fecha_registro) FR
 --
 
 COPY public.paciente_vacunas (id, paciente_id, biologico_id, dosis_id, fecha_aplicacion) FROM stdin;
+1	1	1	1	1998-05-20
+2	1	4	5	1998-07-15
+3	25	1	1	2026-05-22
+4	26	5	11	2026-05-22
+5	27	2	2	2026-05-22
+6	28	4	7	2026-05-22
+7	29	4	7	2026-05-22
+8	30	2	2	2026-05-22
+9	32	3	4	2026-05-22
+10	34	2	2	2026-05-22
 \.
 
 
@@ -382,7 +415,40 @@ COPY public.paciente_vacunas (id, paciente_id, biologico_id, dosis_id, fecha_apl
 -- Data for Name: pacientes; Type: TABLE DATA; Schema: public; Owner: vac_admin
 --
 
-COPY public.pacientes (id, cedula, nacionalidad, nombre, apellido, fecha_nacimiento, sexo, orden_hijo, direccion_comunidad, direccion_calle, direccion_casa, etnia, grupos_especiales, creado_en, telefono, correo) FROM stdin;
+COPY public.pacientes (id, cedula, nacionalidad, nombre, apellido, fecha_nacimiento, genero, orden_hijo, direccion_comunidad, direccion_calle, direccion_casa, etnia, grupos_especiales, creado_en, telefono, correo) FROM stdin;
+2	16985625	V	Luisa	Fernandez	1990-10-23	Femenino	4	San Jose	Calle 9	Nro 22	\N	[]	2026-05-21 15:45:30.21316-04	0414-8406403	luisa.fernandez86@gmail.com
+3	14724683	V	Maria	Gomez	2012-05-20	Femenino	3	Centro	Calle 9	Nro 59	\N	[]	2026-05-21 15:45:30.21316-04	0414-9205364	maria.gomez68@gmail.com
+4	10788336	V	Carmen	Martinez	1993-01-22	Femenino	1	Barrio Obrero	Calle 4	Nro 51	\N	[]	2026-05-21 15:45:30.21316-04	0414-3453631	carmen.martinez53@gmail.com
+5	18463568	V	Maria	Rojas	2001-09-02	Femenino	3	San Jose	Calle 1	Nro 100	\N	[]	2026-05-21 15:45:30.21316-04	0414-6397886	maria.rojas33@gmail.com
+6	19279060	V	Camila	Blanco	2000-06-06	Femenino	3	San Francisco	Calle 4	Nro 7	\N	[]	2026-05-21 15:45:30.21316-04	0414-3347015	camila.blanco57@gmail.com
+7	19994473	V	Valeria	Mendoza	1995-04-13	Femenino	2	San Jose	Calle 1	Nro 20	\N	[]	2026-05-21 15:45:30.21316-04	0414-8340968	valeria.mendoza91@gmail.com
+8	25653210	V	Miguel	Castillo	2021-02-08	Masculino	1	Centro	Calle 10	Nro 90	\N	[]	2026-05-21 15:45:30.21316-04	0414-8164871	miguel.castillo22@gmail.com
+9	11423381	E	Carlos	Suarez	1980-09-25	Masculino	3	San Francisco	Calle 8	Nro 87	\N	[]	2026-05-21 15:45:30.21316-04	0414-7616088	carlos.suarez14@gmail.com
+10	24810758	E	Camila	Salazar	2001-06-03	Femenino	4	Bolivar	Calle 6	Nro 23	\N	[]	2026-05-21 15:45:30.21316-04	0414-9453445	camila.salazar92@gmail.com
+11	26687342	V	Luisa	Gonzalez	1983-10-25	Femenino	4	Sucre	Calle 11	Nro 57	\N	[]	2026-05-21 15:45:30.21316-04	0414-6777043	luisa.gonzalez24@gmail.com
+12	13393522	V	Ana	Diaz	1981-12-21	Femenino	2	El Valle	Calle 6	Nro 73	\N	[]	2026-05-21 15:45:30.21316-04	0414-1958466	ana.diaz2@gmail.com
+13	11038858	V	Carlos	Lopez	2005-01-15	Masculino	3	Sucre	Calle 10	Nro 95	\N	[]	2026-05-21 15:45:30.21316-04	0414-7998727	carlos.lopez15@gmail.com
+14	23417928	E	Pedro	Sanchez	2018-11-02	Masculino	1	Barrio Obrero	Calle 11	Nro 84	\N	[]	2026-05-21 15:45:30.21316-04	0414-1001178	pedro.sanchez70@gmail.com
+15	23878913	V	Jose	Hernandez	2019-09-13	Masculino	1	Barrio Obrero	Calle 5	Nro 7	\N	[]	2026-05-21 15:45:30.21316-04	0414-7305572	jose.hernandez31@gmail.com
+16	26454554	V	Miguel	Sanchez	1995-06-10	Masculino	1	Centro	Calle 1	Nro 53	\N	[]	2026-05-21 15:45:30.21316-04	0414-7043997	miguel.sanchez32@gmail.com
+17	18305092	V	Miguel	Martinez	1982-12-11	Masculino	1	Sucre	Calle 3	Nro 38	\N	[]	2026-05-21 15:45:30.21316-04	0414-9141770	miguel.martinez61@gmail.com
+18	28203636	E	Miguel	Rodriguez	2014-10-02	Masculino	4	Barrio Obrero	Calle 14	Nro 43	\N	[]	2026-05-21 15:45:30.21316-04	0414-2784845	miguel.rodriguez19@gmail.com
+19	23220602	V	Camila	Hernandez	1999-08-28	Femenino	3	Bolivar	Calle 15	Nro 35	\N	[]	2026-05-21 15:45:30.21316-04	0414-7848897	camila.hernandez25@gmail.com
+20	20338459	V	Jesus	Castillo	1999-07-28	Masculino	1	Barrio Obrero	Calle 15	Nro 44	\N	[]	2026-05-21 15:45:30.21316-04	0414-5294587	jesus.castillo30@gmail.com
+21	19056371	E	Jesus	Mendoza	2002-03-18	Masculino	1	Bolivar	Calle 10	Nro 60	\N	[]	2026-05-21 15:45:30.21316-04	0414-6178733	jesus.mendoza68@gmail.com
+22	12345678	V	Andrés	Giménez	1998-05-15	Masculino	\N	Centro	Calle Sucre	Nro 45	\N	[]	2026-05-21 19:31:08.485805-04	0414-1234567	andres@email.com
+23	111111111	V	prueba	prueba	1111-11-11	Masculino	1	a	a	a	\N	["personal_de_salud"]	2026-05-22 11:15:06.954377-04	\N	\N
+24	22222222222	V	prueba	prueba	1112-11-11	Masculino	1	a	a	a	\N	["enfermos_cronicos"]	2026-05-22 13:51:29.098498-04	\N	\N
+25	22333333	V	asdsada	asdasda	1112-11-11	Masculino	2	a	a	a	\N	["enfermos_cronicos"]	2026-05-22 14:04:35.408267-04	\N	\N
+26	44444444444	V	prueba2	prueba2	1111-11-11	Femenino	2	a	a	a	\N	["viajeros_internacionales"]	2026-05-22 14:09:41.204893-04	\N	\N
+27	22222222	V	telefono	telefono	2011-11-22	Masculino	1	a	a	a	\N	["enfermos_cronicos", "viajeros_internacionales"]	2026-05-22 14:22:22.807867-04	\N	\N
+28	444444444	V	as	as	1111-11-22	Femenino	4	a	a	a	\N	["trabajadores_avicolas"]	2026-05-22 14:29:47.726117-04	\N	\N
+29	1222222	V	asdad	adsdas	1111-11-11	Masculino	1	a	aa	a	\N	["contingentes_militares"]	2026-05-22 14:31:38.079558-04	\N	\N
+30	312323	V	sasss	ssaasdasd	1111-11-11	Femenino	1	a	a	a	\N	["personal_de_salud"]	2026-05-22 14:32:58.048906-04	\N	\N
+32	1122222	V	aaaa	aaa	1111-11-11	Femenino	4	a	a	a	\N	["embarazadas"]	2026-05-22 14:41:00.351704-04	04121112222	\N
+33	11111111123	V	aaaa	aaa	1111-11-11	Femenino	2	a	a	a	afrodescendiente	["personal_de_salud"]	2026-05-22 15:02:39.917116-04	02333211111	\N
+1	22222	V	Test	User	2000-01-15	Masculino	1					\N	2026-05-19 17:10:33.073605-04	04141234567	\N
+34	1111111	V	prueba	edicion	1111-11-11	Masculino	1	cambio	cambio	cambio	mestizo	["personal_de_salud", "pacientes_en_dialisis", "enfermos_cronicos", "embarazadas"]	2026-05-22 15:04:08.460069-04	04148299090	\N
 \.
 
 
@@ -419,21 +485,21 @@ SELECT pg_catalog.setval('public.lotes_biologicos_id_seq', 1, false);
 -- Name: paciente_alergias_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vac_admin
 --
 
-SELECT pg_catalog.setval('public.paciente_alergias_id_seq', 1, false);
+SELECT pg_catalog.setval('public.paciente_alergias_id_seq', 67, true);
 
 
 --
 -- Name: paciente_vacunas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vac_admin
 --
 
-SELECT pg_catalog.setval('public.paciente_vacunas_id_seq', 1, false);
+SELECT pg_catalog.setval('public.paciente_vacunas_id_seq', 10, true);
 
 
 --
 -- Name: pacientes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vac_admin
 --
 
-SELECT pg_catalog.setval('public.pacientes_id_seq', 1, false);
+SELECT pg_catalog.setval('public.pacientes_id_seq', 34, true);
 
 
 --
@@ -532,6 +598,13 @@ ALTER TABLE ONLY public.registro_vacunacion
 
 
 --
+-- Name: idx_pacientes_busqueda_trgm; Type: INDEX; Schema: public; Owner: vac_admin
+--
+
+CREATE INDEX idx_pacientes_busqueda_trgm ON public.pacientes USING gin (nombre public.gin_trgm_ops, apellido public.gin_trgm_ops, cedula public.gin_trgm_ops);
+
+
+--
 -- Name: idx_pacientes_cedula; Type: INDEX; Schema: public; Owner: vac_admin
 --
 
@@ -605,5 +678,5 @@ GRANT ALL ON SCHEMA public TO vac_admin;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict dKp1f01tp5ixtobCTDEU5ktbQykeyJtcpF6L4jbFyeZ1W5KTMj1HOyaZd3alVsi
+\unrestrict CZVE1szyf3RXLBCKGw7vhEeL3oXv1DtPoQgcOhuQaBB8UFUH3ytDwqIPVMNkxoo
 

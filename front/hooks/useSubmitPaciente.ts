@@ -34,7 +34,7 @@ export const useSubmitPaciente = () => {
             telefono: estadoStore.telefono,
             correo: estadoStore.correo || null,
             fecha_nacimiento: fechaNacRust,
-            sexo: estadoStore.genero.charAt(0),
+            genero: estadoStore.genero,
             orden_hijo: estadoStore.ordenHijo ? parseInt(estadoStore.ordenHijo) : null,
             direccion_comunidad: estadoStore.comunidad || null,
             direccion_calle: estadoStore.calle || null,

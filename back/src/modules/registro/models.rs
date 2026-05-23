@@ -89,7 +89,7 @@ pub struct CreatePacientePayload {
     pub telefono: Option<String>,
     pub correo: Option<String>,
     pub fecha_nacimiento: NaiveDate,
-    pub sexo: String,
+    pub genero: String,
     pub orden_hijo: Option<i32>,
     pub direccion_comunidad: Option<String>,
     pub direccion_calle: Option<String>,

@@ -10,8 +10,8 @@ use axum::{
 
 pub async fn listar_pacientes(State(state): State<AppState>) -> impl IntoResponse {
     let query = r#"
-        SELECT id, cedula, nacionalidad, nombre, apellido,telefono,correo,fecha_nacimiento, sexo, 
-               orden_hijo, direccion_comunidad, etnia, grupos_especiales 
+        SELECT id, cedula, nacionalidad, nombre, apellido,telefono,correo,fecha_nacimiento, genero,
+               orden_hijo, direccion_comunidad, etnia, grupos_especiales
         FROM pacientes ORDER BY id DESC
     "#;
 
@@ -56,7 +56,7 @@ pub async fn get_pacientes_search(
     let offset = (page - 1) * limit;
 
     let total_query = r#"
-        SELECT COUNT(*) FROM pacientes 
+        SELECT COUNT(*) FROM pacientes
         WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR cedula ILIKE $1
     "#;
     let total: (i64,) = sqlx::query_as(total_query)
@@ -66,8 +66,8 @@ pub async fn get_pacientes_search(
         .unwrap_or((0,));
 
     let query = r#"
-        SELECT * FROM pacientes 
-        WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR cedula ILIKE $1 
+        SELECT * FROM pacientes
+        WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR cedula ILIKE $1
         ORDER BY id DESC LIMIT $2 OFFSET $3
     "#;
 
@@ -101,8 +101,8 @@ pub async fn get_paciente_perfil(
     };
 
     let query_vacunas = r#"
-        SELECT pv.id, b.nombre as biologico_nombre, d.nombre_dosis as dosis_nombre, 
-               DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador 
+        SELECT pv.id, b.nombre as biologico_nombre, d.nombre_dosis as dosis_nombre,
+               DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador
         FROM paciente_vacunas pv
         JOIN catalogo_biologicos b ON pv.biologico_id = b.id
         JOIN esquema_dosis d ON pv.dosis_id = d.id
@@ -116,13 +116,12 @@ pub async fn get_paciente_perfil(
         .unwrap_or_else(|_| vec![]);
 
     let query_alergias = r#"
-        SELECT pa.id, b.nombre as biologico_nombre, DATE(pa.fecha_registro) as fecha_registro
+        SELECT pa.id, pa.biologico_id, b.nombre as biologico_nombre, DATE(pa.fecha_registro) as fecha_registro
         FROM paciente_alergias pa
         JOIN catalogo_biologicos b ON pa.biologico_id = b.id
         WHERE pa.paciente_id = $1 ORDER BY pa.fecha_registro DESC
     "#;
 
-    // AQUI estaba el error del import de Alergia. Al usar super::models::* ya lo tenemos.
     let alergias = sqlx::query_as::<_, Alergia>(query_alergias)
         .bind(id)
         .fetch_all(&state.db)
@@ -145,10 +144,10 @@ pub async fn update_paciente(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al iniciar transacción: {e}")))?;
 
     let query = r#"
-        UPDATE pacientes 
-        SET cedula = $1, nombre = $2, apellido = $3, fecha_nacimiento = $4, 
-            sexo = $5, telefono = $6, correo = $7, direccion_comunidad = $8, 
-            direccion_calle = $9, direccion_casa = $10, etnia = $11, 
+        UPDATE pacientes
+        SET cedula = $1, nombre = $2, apellido = $3, fecha_nacimiento = $4,
+            genero = $5, telefono = $6, correo = $7, direccion_comunidad = $8,
+            direccion_calle = $9, direccion_casa = $10, etnia = $11,
             grupos_especiales = $12
         WHERE id = $13
     "#;
@@ -158,7 +157,7 @@ pub async fn update_paciente(
         .bind(&payload.nombre)
         .bind(&payload.apellido)
         .bind(&payload.fecha_nacimiento)
-        .bind(&payload.sexo)
+        .bind(&payload.genero)
         .bind(&payload.telefono)
         .bind(&payload.correo)
         .bind(&payload.direccion_comunidad)
@@ -175,7 +174,6 @@ pub async fn update_paciente(
         return Err((StatusCode::NOT_FOUND, "Paciente no encontrado".to_string()));
     }
 
-    // Actualizar alergias dentro de la misma transacción
     if let Some(alergias) = &payload.alergias {
         sqlx::query("DELETE FROM paciente_alergias WHERE paciente_id = $1")
             .bind(id)

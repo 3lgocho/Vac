@@ -29,8 +29,8 @@ pub async fn crear_paciente(
     // 2. INSERTAR PACIENTE
     let query_paciente = r#"
         INSERT INTO pacientes (
-            cedula, nacionalidad, nombre, apellido, fecha_nacimiento, sexo, 
-            orden_hijo, direccion_comunidad, direccion_calle, direccion_casa, 
+            cedula, nacionalidad, nombre, apellido, fecha_nacimiento, genero,
+            orden_hijo, direccion_comunidad, direccion_calle, direccion_casa,
             etnia, grupos_especiales, telefono, correo
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id
     "#;
@@ -41,7 +41,7 @@ pub async fn crear_paciente(
         .bind(&payload.nombre)
         .bind(&payload.apellido)
         .bind(&payload.fecha_nacimiento)
-        .bind(&payload.sexo)
+        .bind(&payload.genero)
         .bind(&payload.orden_hijo)
         .bind(&payload.direccion_comunidad)
         .bind(&payload.direccion_calle)
