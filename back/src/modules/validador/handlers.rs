@@ -9,5 +9,12 @@ pub async fn evaluar_esquema(
     Json(payload): Json<PerfilPaciente>,
 ) -> impl IntoResponse {
     let esquema = obtener_esquema_disponible(&payload);
+    eprintln!(
+        "🔍 VALIDADOR: fecha_nac={:?}, grupos={:?}, vacunas_aplicadas={:?}, resultado={} items",
+        payload.fecha_nacimiento,
+        payload.grupos_especiales,
+        payload.vacunas_aplicadas,
+        esquema.len()
+    );
     (StatusCode::OK, Json(esquema))
 }

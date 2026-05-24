@@ -13,7 +13,8 @@ use tower_http::cors::{Any, CorsLayer};
 // Importamos de forma limpia los handlers de cada módulo
 use crate::modules::{
     pacientes::handlers::{
-        get_paciente_perfil, get_pacientes_agenda, get_pacientes_search, update_paciente,
+        aplicar_vacunas, get_paciente_perfil, get_pacientes_agenda, get_pacientes_search,
+        update_paciente,
     },
     registro::handlers::crear_paciente,
     vacunas::handlers::listar_biologicos,
@@ -55,6 +56,7 @@ async fn main() {
             get(get_paciente_perfil).put(update_paciente),
         )
         .route("/biologicos", get(listar_biologicos))
+        .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
         .route("/validador/esquema", post(evaluar_esquema))
         .layer(cors)
         .with_state(state);

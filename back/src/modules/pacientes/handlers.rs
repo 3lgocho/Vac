@@ -7,6 +7,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
+use serde::Deserialize;
 
 pub async fn listar_pacientes(State(state): State<AppState>) -> impl IntoResponse {
     let query = r#"
@@ -101,8 +102,8 @@ pub async fn get_paciente_perfil(
     };
 
     let query_vacunas = r#"
-        SELECT pv.id, b.nombre as biologico_nombre, d.nombre_dosis as dosis_nombre,
-               DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador
+        SELECT pv.id, pv.biologico_id, b.nombre as biologico_nombre, pv.dosis_id, d.nombre_dosis as dosis_nombre,
+               DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador 
         FROM paciente_vacunas pv
         JOIN catalogo_biologicos b ON pv.biologico_id = b.id
         JOIN esquema_dosis d ON pv.dosis_id = d.id
@@ -195,4 +196,46 @@ pub async fn update_paciente(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
 
     Ok((StatusCode::OK, "Paciente actualizado"))
+}
+
+#[derive(Deserialize)]
+pub struct AplicarVacunaPayload {
+    pub biologico_id: i32,
+    pub dosis_id: i32,
+}
+
+pub async fn aplicar_vacunas(
+    State(state): State<AppState>,
+    Path(id): Path<i32>,
+    Json(payload): Json<Vec<AplicarVacunaPayload>>,
+) -> Result<(StatusCode, &'static str), (StatusCode, String)> {
+    let exists = sqlx::query_scalar::<_, i32>("SELECT 1 FROM pacientes WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error en DB: {e}")))?;
+
+    if exists.is_none() {
+        return Err((StatusCode::NOT_FOUND, "Paciente no encontrado".to_string()));
+    }
+
+    let mut tx = state.db.begin().await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al iniciar transacción: {e}")))?;
+
+    for vacuna in &payload {
+        sqlx::query(
+            "INSERT INTO paciente_vacunas (paciente_id, biologico_id, dosis_id, fecha_aplicacion) VALUES ($1, $2, $3, CURRENT_DATE)"
+        )
+            .bind(id)
+            .bind(vacuna.biologico_id)
+            .bind(vacuna.dosis_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error insertando vacuna: {e}")))?;
+    }
+
+    tx.commit().await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
+
+    Ok((StatusCode::CREATED, "Vacunas aplicadas exitosamente"))
 }

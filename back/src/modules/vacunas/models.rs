@@ -20,7 +20,9 @@ pub struct Biologico {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct VacunaAplicada {
     pub id: i32,
+    pub biologico_id: i32,
     pub biologico_nombre: String,
+    pub dosis_id: i32,
     pub dosis_nombre: String,
     pub fecha_aplicacion: NaiveDate,
     pub lote: Option<String>,

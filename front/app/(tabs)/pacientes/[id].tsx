@@ -141,8 +141,8 @@ export default function PacientePerfilScreen() {
                                             <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 shadow-sm">
                                                 <View className="flex-row justify-between items-start mb-2">
                                                     <Text className="font-label-lg text-label-lg text-on-surface">{vacuna.biologico_nombre}</Text>
-                                                    <View className="bg-primary-container px-2 py-1 rounded">
-                                                        <Text className="text-primary font-body-sm">{vacuna.dosis_nombre}</Text>
+                                                    <View className="bg-primary px-2 py-1 rounded">
+                                                        <Text className="text-white font-body-sm">{vacuna.dosis_nombre}</Text>
                                                     </View>
                                                 </View>
                                                 <View className="flex-row items-center gap-1">

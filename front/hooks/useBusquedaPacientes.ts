@@ -33,7 +33,7 @@ export const useBusquedaPacientes = () => {
             currentEstado.current = estado;
 
             const url = new URL(API_URL);
-            if (query.length >= 3) url.searchParams.append('q', query);
+            if (query.length >= 1) url.searchParams.append('q', query);
             if (estado !== 'todos') url.searchParams.append('estado', estado);
 
             url.searchParams.append('page', pageNum.toString());
