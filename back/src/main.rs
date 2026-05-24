@@ -3,7 +3,7 @@ mod modules; // 👈 Importas tu nueva estructura
 use axum::{
     Router,
     http::Method,
-    routing::{get, post, put},
+    routing::{get, post},
 };
 use dotenvy::dotenv;
 use sqlx::{PgPool, postgres::PgPoolOptions};
@@ -12,6 +12,7 @@ use tower_http::cors::{Any, CorsLayer};
 
 // Importamos de forma limpia los handlers de cada módulo
 use crate::modules::{
+    agenda::handlers::calcular_agenda_handler,
     pacientes::handlers::{
         aplicar_vacunas, get_paciente_perfil, get_pacientes_agenda, get_pacientes_search,
         update_paciente,
@@ -58,6 +59,7 @@ async fn main() {
         .route("/biologicos", get(listar_biologicos))
         .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
         .route("/validador/esquema", post(evaluar_esquema))
+        .route("/agenda", post(calcular_agenda_handler))
         .layer(cors)
         .with_state(state);
 

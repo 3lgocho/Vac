@@ -7,6 +7,8 @@ use crate::modules::registro::models::GrupoEspecial;
 pub struct VacunaAplicadaInput {
     pub biologico_id: i32,
     pub dosis_id: i32,
+    #[serde(default)]
+    pub fecha_aplicacion: Option<NaiveDate>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
