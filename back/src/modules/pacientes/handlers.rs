@@ -347,15 +347,20 @@ pub async fn batch_next_vaccines(
             }
         } else {
             let agenda = calcular_agenda(&perfil, &faltantes);
-            let tiene_atrasada = agenda.iter().any(|d| d.estado == "Atrasada");
 
             if let Some(ult) = ultima {
+                // El estado atrasada solo aplica si la SIGUIENTE dosis
+                // del mismo biológico está vencida, no si otra vacuna
+                // sin relación está pendiente
+                let mismo_atrasado = agenda.iter().any(|d| {
+                    d.biologico_id == ult.biologico_id && d.estado == "Atrasada"
+                });
                 results.push(NextVaccineItem {
                     paciente_id: patient.id,
                     nombre_vacuna: ult.biologico_nombre.clone(),
                     dosis_a_aplicar: ult.dosis_nombre.clone(),
                     fecha_sugerida: ult.fecha_aplicacion,
-                    estado: if tiene_atrasada {
+                    estado: if mismo_atrasado {
                         "Atrasada".to_string()
                     } else {
                         "Al día".to_string()
