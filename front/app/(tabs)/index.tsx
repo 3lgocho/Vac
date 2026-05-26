@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, FlatList, ActivityIndicator, Modal, ScrollView, Animated, Keyboard, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useBusquedaPacientes, FiltroEstado } from '../../hooks/useBusquedaPacientes';
+import { useNextVaccines } from '../../hooks/useNextVaccines';
 import { PacienteCard } from '../../components/PacienteCard';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -20,6 +21,9 @@ export default function Dashboard() {
   const greetingAnim = useRef(new Animated.Value(1)).current;
 
   const { pacientes, loading, loadingMore, fetchPacientes, loadMore } = useBusquedaPacientes();
+
+  const patientIds = useMemo(() => pacientes.map(p => p.id), [pacientes]);
+  const nextVaccines = useNextVaccines(patientIds);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -175,9 +179,7 @@ export default function Dashboard() {
             nombre={item.nombre}
             apellido={item.apellido}
             cedula={`${item.nacionalidad}-${item.cedula}`}
-            vacuna="Registro"
-            dosis="N/A"
-            esAtrasada={estadoActivo === 'atrasados'}
+            nextVaccine={nextVaccines[item.id]}
             onPress={() => router.push(`/pacientes/${item.id}`)}
           />
         )}

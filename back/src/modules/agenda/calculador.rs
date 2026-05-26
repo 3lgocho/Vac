@@ -212,6 +212,10 @@ fn determinar_estado(fecha: NaiveDate) -> String {
     }
 }
 
+fn tiene_dosis_biologico(paciente: &PerfilPaciente, bio_id: i32) -> bool {
+    paciente.vacunas_aplicadas.iter().any(|v| v.biologico_id == bio_id)
+}
+
 pub fn calcular_agenda(
     paciente: &PerfilPaciente,
     faltantes: &[VacunaDisponible],
@@ -219,13 +223,23 @@ pub fn calcular_agenda(
     faltantes
         .iter()
         .map(|d| {
-            let fecha = calcular_fecha(paciente, d);
+            let mut fecha = calcular_fecha(paciente, d);
+            let mut estado = determinar_estado(fecha);
+
+            // Si el paciente nunca ha recibido este biológico en el sistema,
+            // la fecha calculada (edad mínima) no indica atraso real:
+            // puede que ya se haya vacunado antes sin registro digital.
+            if !tiene_dosis_biologico(paciente, d.biologico_id) && fecha < hoy() {
+                fecha = hoy();
+                estado = "Para Hoy".to_string();
+            }
+
             DosisProgramada {
                 biologico_id: d.biologico_id,
                 nombre: d.nombre.clone(),
                 dosis_a_aplicar: d.dosis_a_aplicar.clone(),
                 fecha_sugerida: fecha,
-                estado: determinar_estado(fecha),
+                estado,
                 advertencia: d.advertencia.clone(),
             }
         })

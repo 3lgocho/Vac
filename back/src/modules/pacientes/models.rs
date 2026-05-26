@@ -70,3 +70,27 @@ pub struct PaginatedPacientes {
     pub data: Vec<Paciente>,
     pub total: i64,
 }
+
+#[derive(Deserialize)]
+pub struct NextVaccinesQuery {
+    pub ids: Vec<i32>,
+}
+
+#[derive(Serialize)]
+pub struct NextVaccineItem {
+    pub paciente_id: i32,
+    pub nombre_vacuna: String,
+    pub dosis_a_aplicar: String,
+    pub fecha_sugerida: NaiveDate,
+    pub estado: String,
+}
+
+#[derive(Deserialize, sqlx::FromRow)]
+pub struct HistorialConPacienteRow {
+    pub paciente_id: i32,
+    pub biologico_id: i32,
+    pub biologico_nombre: String,
+    pub dosis_id: i32,
+    pub dosis_nombre: String,
+    pub fecha_aplicacion: NaiveDate,
+}

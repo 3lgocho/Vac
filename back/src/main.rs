@@ -14,8 +14,8 @@ use tower_http::cors::{Any, CorsLayer};
 use crate::modules::{
     agenda::handlers::calcular_agenda_handler,
     pacientes::handlers::{
-        aplicar_vacunas, get_paciente_perfil, get_pacientes_agenda, get_pacientes_search,
-        update_paciente,
+        aplicar_vacunas, batch_next_vaccines, get_paciente_perfil, get_pacientes_agenda,
+        get_pacientes_search, update_paciente,
     },
     registro::handlers::crear_paciente,
     vacunas::handlers::listar_biologicos,
@@ -58,6 +58,7 @@ async fn main() {
         )
         .route("/biologicos", get(listar_biologicos))
         .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
+        .route("/pacientes/next-vaccines", post(batch_next_vaccines))
         .route("/validador/esquema", post(evaluar_esquema))
         .route("/agenda", post(calcular_agenda_handler))
         .layer(cors)

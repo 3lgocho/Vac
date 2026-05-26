@@ -1,13 +1,19 @@
 use super::models::*;
 use crate::AppState;
+use crate::modules::agenda::calculador::calcular_agenda;
+use crate::modules::registro::models::GrupoEspecial;
 use crate::modules::vacunas::models::VacunaAplicada;
+use crate::modules::validador::models::{PerfilPaciente, VacunaAplicadaInput};
+use crate::modules::validador::reglas::obtener_esquema_disponible;
 use axum::{
     Json,
     extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
 };
+use chrono::{Local, NaiveDate};
 use serde::Deserialize;
+use std::collections::HashMap;
 
 pub async fn listar_pacientes(State(state): State<AppState>) -> impl IntoResponse {
     let query = r#"
@@ -238,4 +244,138 @@ pub async fn aplicar_vacunas(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
 
     Ok((StatusCode::CREATED, "Vacunas aplicadas exitosamente"))
+}
+
+fn hoy() -> NaiveDate {
+    Local::now().naive_local().date()
+}
+
+pub async fn batch_next_vaccines(
+    State(state): State<AppState>,
+    Json(payload): Json<NextVaccinesQuery>,
+) -> Result<Json<Vec<NextVaccineItem>>, (StatusCode, String)> {
+    if payload.ids.is_empty() {
+        return Ok(Json(vec![]));
+    }
+
+    // 1. Fetch patients (id, fecha_nacimiento, grupos_especiales)
+    #[derive(sqlx::FromRow)]
+    struct PatientRow {
+        id: i32,
+        fecha_nacimiento: NaiveDate,
+        grupos_especiales: Option<serde_json::Value>,
+    }
+
+    let patients = sqlx::query_as::<_, PatientRow>(
+        "SELECT id, fecha_nacimiento, grupos_especiales FROM pacientes WHERE id = ANY($1)",
+    )
+    .bind(&payload.ids)
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| {
+        eprintln!("Error fetching patients: {e}");
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?;
+
+    // 2. Fetch all vaccine histories for these patients (with names)
+    let historial = sqlx::query_as::<_, HistorialConPacienteRow>(
+        r#"SELECT pv.paciente_id, pv.biologico_id, b.nombre as biologico_nombre,
+                  pv.dosis_id, d.nombre_dosis as dosis_nombre, pv.fecha_aplicacion
+           FROM paciente_vacunas pv
+           JOIN catalogo_biologicos b ON pv.biologico_id = b.id
+           JOIN esquema_dosis d ON pv.dosis_id = d.id
+           WHERE pv.paciente_id = ANY($1)
+           ORDER BY pv.paciente_id, pv.fecha_aplicacion DESC"#,
+    )
+    .bind(&payload.ids)
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| {
+        eprintln!("Error fetching historial: {e}");
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?;
+
+    // Group by paciente_id
+    let mut history_map: HashMap<i32, Vec<HistorialConPacienteRow>> = HashMap::new();
+    for row in historial {
+        history_map.entry(row.paciente_id).or_default().push(row);
+    }
+
+    let mut results = Vec::new();
+    for patient in &patients {
+        let vacunas = history_map.remove(&patient.id).unwrap_or_default();
+
+        let grupos: Vec<GrupoEspecial> = patient
+            .grupos_especiales
+            .as_ref()
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+
+        let perfil = PerfilPaciente {
+            fecha_nacimiento: patient.fecha_nacimiento,
+            grupos_especiales: grupos,
+            vacunas_aplicadas: vacunas
+                .iter()
+                .map(|v| VacunaAplicadaInput {
+                    biologico_id: v.biologico_id,
+                    dosis_id: v.dosis_id,
+                    fecha_aplicacion: Some(v.fecha_aplicacion),
+                })
+                .collect(),
+        };
+
+        let faltantes = obtener_esquema_disponible(&perfil);
+        let ultima = vacunas.first();
+
+        if faltantes.is_empty() {
+            if let Some(ult) = ultima {
+                results.push(NextVaccineItem {
+                    paciente_id: patient.id,
+                    nombre_vacuna: ult.biologico_nombre.clone(),
+                    dosis_a_aplicar: ult.dosis_nombre.clone(),
+                    fecha_sugerida: ult.fecha_aplicacion,
+                    estado: "Al día".to_string(),
+                });
+            } else {
+                results.push(NextVaccineItem {
+                    paciente_id: patient.id,
+                    nombre_vacuna: "Sin vacunas".to_string(),
+                    dosis_a_aplicar: String::new(),
+                    fecha_sugerida: hoy(),
+                    estado: "Sin vacunas".to_string(),
+                });
+            }
+        } else {
+            let agenda = calcular_agenda(&perfil, &faltantes);
+            let tiene_atrasada = agenda.iter().any(|d| d.estado == "Atrasada");
+
+            if let Some(ult) = ultima {
+                results.push(NextVaccineItem {
+                    paciente_id: patient.id,
+                    nombre_vacuna: ult.biologico_nombre.clone(),
+                    dosis_a_aplicar: ult.dosis_nombre.clone(),
+                    fecha_sugerida: ult.fecha_aplicacion,
+                    estado: if tiene_atrasada {
+                        "Atrasada".to_string()
+                    } else {
+                        "Al día".to_string()
+                    },
+                });
+            } else {
+                let mut sorted = agenda;
+                sorted.sort_by_key(|d| d.fecha_sugerida);
+                if let Some(primera) = sorted.first() {
+                    results.push(NextVaccineItem {
+                        paciente_id: patient.id,
+                        nombre_vacuna: primera.nombre.clone(),
+                        dosis_a_aplicar: primera.dosis_a_aplicar.clone(),
+                        fecha_sugerida: primera.fecha_sugerida,
+                        estado: primera.estado.clone(),
+                    });
+                }
+            }
+        }
+    }
+
+    Ok(Json(results))
 }
