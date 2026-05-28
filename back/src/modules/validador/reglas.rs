@@ -49,6 +49,7 @@ fn push_si_no_aplicada(
         disponibles.push(VacunaDisponible {
             biologico_id: bio_id,
             nombre: nombre.to_string(),
+            dosis_id,
             dosis_a_aplicar: dosis_label.to_string(),
             advertencia: advertencia.map(|s| s.to_string()),
         });
@@ -69,6 +70,7 @@ impl ReglaVacunacion for ReglaBcg {
             vec![VacunaDisponible {
                 biologico_id: 1,
                 nombre: "BCG".to_string(),
+                dosis_id: 1,
                 dosis_a_aplicar: "DU".to_string(),
                 advertencia: None,
             }]
@@ -399,6 +401,7 @@ impl ReglaVacunacion for ReglaFiebreAmarilla {
             vec![VacunaDisponible {
                 biologico_id: 6,
                 nombre: "Fiebre Amarilla".to_string(),
+                dosis_id: 15,
                 dosis_a_aplicar: "DU".to_string(),
                 advertencia: Some("Aplicar a partir de los 12 meses".to_string()),
             }]

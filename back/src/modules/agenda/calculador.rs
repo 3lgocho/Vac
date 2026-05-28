@@ -237,6 +237,7 @@ pub fn calcular_agenda(
             DosisProgramada {
                 biologico_id: d.biologico_id,
                 nombre: d.nombre.clone(),
+                dosis_id: d.dosis_id,
                 dosis_a_aplicar: d.dosis_a_aplicar.clone(),
                 fecha_sugerida: fecha,
                 estado,

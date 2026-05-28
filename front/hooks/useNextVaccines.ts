@@ -4,10 +4,11 @@ const API_URL = 'http://localhost:3000/pacientes/next-vaccines';
 
 export interface NextVaccineInfo {
     paciente_id: number;
-    nombre_vacuna: string;
-    dosis_a_aplicar: string;
-    fecha_sugerida: string;
     estado: string;
+    proxima_vacuna: string | null;
+    proxima_dosis: string | null;
+    proxima_fecha: string | null;
+    vacunas_atrasadas: string[];
 }
 
 export const useNextVaccines = (patientIds: number[]) => {

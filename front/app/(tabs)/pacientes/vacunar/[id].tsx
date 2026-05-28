@@ -13,6 +13,7 @@ const API_BASE = 'http://localhost:3000';
 interface VacunaDisponible {
   biologico_id: number;
   nombre: string;
+  dosis_id: number;
   dosis_a_aplicar: string;
   advertencia: string | null;
 }

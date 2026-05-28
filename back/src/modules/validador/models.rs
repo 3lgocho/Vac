@@ -22,6 +22,7 @@ pub struct PerfilPaciente {
 pub struct VacunaDisponible {
     pub biologico_id: i32,
     pub nombre: String,
+    pub dosis_id: i32,
     pub dosis_a_aplicar: String,
     pub advertencia: Option<String>,
 }

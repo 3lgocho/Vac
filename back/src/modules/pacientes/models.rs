@@ -55,6 +55,7 @@ pub struct SearchParams {
     pub q: Option<String>,
     pub page: Option<i64>,
     pub limit: Option<i64>,
+    pub estado: Option<String>,
 }
 
 #[derive(Debug, Serialize, sqlx::FromRow)]
@@ -79,10 +80,11 @@ pub struct NextVaccinesQuery {
 #[derive(Serialize)]
 pub struct NextVaccineItem {
     pub paciente_id: i32,
-    pub nombre_vacuna: String,
-    pub dosis_a_aplicar: String,
-    pub fecha_sugerida: NaiveDate,
     pub estado: String,
+    pub proxima_vacuna: Option<String>,
+    pub proxima_dosis: Option<String>,
+    pub proxima_fecha: Option<NaiveDate>,
+    pub vacunas_atrasadas: Vec<String>,
 }
 
 #[derive(Deserialize, sqlx::FromRow)]

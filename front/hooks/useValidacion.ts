@@ -6,6 +6,7 @@ const API_VALIDADOR = 'http://localhost:3000/validador/esquema';
 export interface VacunaDisponible {
     biologico_id: number;
     nombre: string;
+    dosis_id: number;
     dosis_a_aplicar: string;
     advertencia: string | null;
 }

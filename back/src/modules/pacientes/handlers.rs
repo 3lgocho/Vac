@@ -258,7 +258,6 @@ pub async fn batch_next_vaccines(
         return Ok(Json(vec![]));
     }
 
-    // 1. Fetch patients (id, fecha_nacimiento, grupos_especiales)
     #[derive(sqlx::FromRow)]
     struct PatientRow {
         id: i32,
@@ -277,7 +276,6 @@ pub async fn batch_next_vaccines(
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    // 2. Fetch all vaccine histories for these patients (with names)
     let historial = sqlx::query_as::<_, HistorialConPacienteRow>(
         r#"SELECT pv.paciente_id, pv.biologico_id, b.nombre as biologico_nombre,
                   pv.dosis_id, d.nombre_dosis as dosis_nombre, pv.fecha_aplicacion
@@ -295,11 +293,12 @@ pub async fn batch_next_vaccines(
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
-    // Group by paciente_id
     let mut history_map: HashMap<i32, Vec<HistorialConPacienteRow>> = HashMap::new();
     for row in historial {
         history_map.entry(row.paciente_id).or_default().push(row);
     }
+
+    use crate::modules::agenda::estado::calcular_estado_paciente;
 
     let mut results = Vec::new();
     for patient in &patients {
@@ -325,61 +324,22 @@ pub async fn batch_next_vaccines(
         };
 
         let faltantes = obtener_esquema_disponible(&perfil);
-        let ultima = vacunas.first();
+        let estado_paciente = calcular_estado_paciente(&perfil, &faltantes);
 
-        if faltantes.is_empty() {
-            if let Some(ult) = ultima {
-                results.push(NextVaccineItem {
-                    paciente_id: patient.id,
-                    nombre_vacuna: ult.biologico_nombre.clone(),
-                    dosis_a_aplicar: ult.dosis_nombre.clone(),
-                    fecha_sugerida: ult.fecha_aplicacion,
-                    estado: "Al día".to_string(),
-                });
-            } else {
-                results.push(NextVaccineItem {
-                    paciente_id: patient.id,
-                    nombre_vacuna: "Sin vacunas".to_string(),
-                    dosis_a_aplicar: String::new(),
-                    fecha_sugerida: hoy(),
-                    estado: "Sin vacunas".to_string(),
-                });
-            }
-        } else {
-            let agenda = calcular_agenda(&perfil, &faltantes);
-
-            if let Some(ult) = ultima {
-                // El estado atrasada solo aplica si la SIGUIENTE dosis
-                // del mismo biológico está vencida, no si otra vacuna
-                // sin relación está pendiente
-                let mismo_atrasado = agenda.iter().any(|d| {
-                    d.biologico_id == ult.biologico_id && d.estado == "Atrasada"
-                });
-                results.push(NextVaccineItem {
-                    paciente_id: patient.id,
-                    nombre_vacuna: ult.biologico_nombre.clone(),
-                    dosis_a_aplicar: ult.dosis_nombre.clone(),
-                    fecha_sugerida: ult.fecha_aplicacion,
-                    estado: if mismo_atrasado {
-                        "Atrasada".to_string()
-                    } else {
-                        "Al día".to_string()
-                    },
-                });
-            } else {
-                let mut sorted = agenda;
-                sorted.sort_by_key(|d| d.fecha_sugerida);
-                if let Some(primera) = sorted.first() {
-                    results.push(NextVaccineItem {
-                        paciente_id: patient.id,
-                        nombre_vacuna: primera.nombre.clone(),
-                        dosis_a_aplicar: primera.dosis_a_aplicar.clone(),
-                        fecha_sugerida: primera.fecha_sugerida,
-                        estado: primera.estado.clone(),
-                    });
-                }
-            }
-        }
+        results.push(NextVaccineItem {
+            paciente_id: patient.id,
+            estado: estado_paciente.estado,
+            proxima_vacuna: estado_paciente
+                .proxima_vacuna
+                .as_ref()
+                .map(|p| p.nombre.clone()),
+            proxima_dosis: estado_paciente
+                .proxima_vacuna
+                .as_ref()
+                .map(|p| p.dosis.clone()),
+            proxima_fecha: estado_paciente.proxima_vacuna.as_ref().map(|p| p.fecha_sugerida),
+            vacunas_atrasadas: estado_paciente.vacunas_atrasadas.clone(),
+        });
     }
 
     Ok(Json(results))
