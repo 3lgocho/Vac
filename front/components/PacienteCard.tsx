@@ -38,9 +38,16 @@ export const PacienteCard = ({ nombre, apellido, cedula, nextVaccine, onPress }:
     const tieneAtrasadas = nextVaccine?.vacunas_atrasadas && nextVaccine.vacunas_atrasadas.length > 0;
 
     return (
-        <View className="flex flex-col gap-4 mb-3">
-            <TouchableOpacity onPress={onPress} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-row items-center justify-between relative overflow-hidden">
-                <View className="absolute left-0 top-0 bottom-0 w-1 bg-secondary"></View>
+        <TouchableOpacity
+            onPress={onPress}
+            // Eliminamos el flex-row de aquí y dejamos que apile en columna. Se añade mb-3 para separar las tarjetas.
+            className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 relative overflow-hidden mb-3 flex flex-col"
+        >
+            {/* Borde lateral izquierdo */}
+            <View className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></View>
+
+            {/* Fila Principal: Datos del paciente y estado */}
+            <View className="flex flex-row items-center justify-between w-full">
                 <View className="flex flex-row items-center gap-3 flex-1">
                     <View className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center">
                         <Text className="text-on-secondary-fixed font-label-lg text-label-lg">{iniciales}</Text>
@@ -53,37 +60,39 @@ export const PacienteCard = ({ nombre, apellido, cedula, nextVaccine, onPress }:
                 <View className="items-end ml-2 max-w-[160px]">
                     {estado === 'Sin vacunas' ? (
                         <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-surface-container-high">
-                            <MaterialIcons name="block" size={16} color="#6B7280" />
+                            <MaterialIcons name="block" size={24} color="#6B7280" />
                             <Text className="font-label-md text-label-md text-on-surface-variant">Sin vacunas</Text>
                         </View>
                     ) : !tieneProxima ? (
                         <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-success/20">
-                            <MaterialIcons name="check-circle" size={16} color="#059669" />
+                            <MaterialIcons name="check-circle" size={24} color="#059669" />
                             <Text className="font-label-md text-label-md text-success">Completada</Text>
                         </View>
                     ) : (
                         <>
                             <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-secondary-fixed/20">
-                                <MaterialIcons name="event" size={16} color="#115E59" />
-                                <Text className="font-label-md text-label-md text-secondary" numberOfLines={1}>
+                                <MaterialIcons name="vaccines" size={24} color="#115E59" />
+                                <Text className="font-body-medium text-body-medium text-primary font-medium text-base" numberOfLines={1}>
                                     {nextVaccine!.proxima_vacuna} {nextVaccine!.proxima_dosis}
                                 </Text>
                             </View>
                             <Text className="font-body-md text-body-md text-outline text-xs mt-1">
-                                {formatDate(nextVaccine!.proxima_fecha)}
+                                Próxima dosis: {formatDate(nextVaccine!.proxima_fecha)}
                             </Text>
                         </>
                     )}
                 </View>
-            </TouchableOpacity>
+            </View>
+
+            {/* Fila de Advertencia: Integrada dentro del botón pero debajo del contenido principal */}
             {tieneAtrasadas && (
-                <View className="bg-error/10 border border-error/20 rounded-xl px-4 py-2 flex flex-row items-center gap-2">
+                <View className="bg-error/10 border border-error/20 rounded-lg px-3 py-2 flex flex-row items-center gap-2 mt-3 w-full">
                     <MaterialIcons name="warning" size={18} color="#DC2626" />
                     <Text className="font-label-md text-label-md text-error flex-1">
                         Atrasadas: {nextVaccine!.vacunas_atrasadas.join(', ')}
                     </Text>
                 </View>
             )}
-        </View>
+        </TouchableOpacity>
     );
 };
