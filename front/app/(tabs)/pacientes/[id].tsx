@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaVi
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { TopBar } from '../../../components/TopBar';
+import { apiFetch } from '../../../hooks/useApi';
 
 type TabType = 'historial' | 'alergias' | 'datos';
 
@@ -36,7 +37,7 @@ export default function PacientePerfilScreen() {
     useEffect(() => {
         const fetchPerfil = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/pacientes/${id}`);
+                const res = await apiFetch(`/pacientes/${id}`);
                 if (res.ok) {
                     setPerfil(await res.json());
                 }

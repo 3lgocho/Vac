@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-
-const API_URL = 'http://localhost:3000/pacientes/next-vaccines';
+import { apiFetch } from './useApi';
 
 export interface NextVaccineInfo {
     paciente_id: number;
@@ -20,12 +19,10 @@ export const useNextVaccines = (patientIds: number[]) => {
         if (!idsKey || idsKey === prevIds.current) return;
         prevIds.current = idsKey;
 
-        fetch(API_URL, {
+        apiFetch('/pacientes/next-vaccines', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: patientIds }),
-        })
-            .then(r => r.json())
+        }).then(r => r.json())
             .then((data: NextVaccineInfo[]) => {
                 const map: Record<number, NextVaccineInfo | null> = {};
                 data.forEach(item => {

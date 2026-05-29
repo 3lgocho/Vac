@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS personal_salud (
+    id SERIAL PRIMARY KEY,
+    cedula VARCHAR(15) UNIQUE NOT NULL,
+    pin_hash VARCHAR(255) NOT NULL,
+    nombre_completo VARCHAR(100) NOT NULL,
+    rol VARCHAR(50) DEFAULT 'enfermeria',
+    activo BOOLEAN DEFAULT TRUE,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

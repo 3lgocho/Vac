@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const API_URL = 'http://localhost:3000/agenda/pacientes-por-fecha';
+import { apiFetch } from './useApi';
 
 export interface PacienteAgendaItem {
     paciente_id: number;
@@ -22,8 +21,7 @@ export const useAgendaPorFecha = (fecha: string) => {
         if (!fecha) return;
         setLoading(true);
         try {
-            const url = `${API_URL}?fecha=${fecha}`;
-            const response = await fetch(url);
+            const response = await apiFetch(`/agenda/pacientes-por-fecha?fecha=${fecha}`);
             if (!response.ok) throw new Error('Error al obtener agenda');
             const data: PacienteAgendaItem[] = await response.json();
             setItems(data);

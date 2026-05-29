@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect, useRef } from 'react'; // <- useRef agregado
-
-const API_URL = 'http://localhost:3000/pacientes'; // Ajusta a tu IP local / red o /pacientes/search
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { apiFetch } from './useApi';
 
 interface PacienteFilters {
     query?: string;
@@ -37,18 +36,14 @@ export const usePacientes = (initialFilters: PacienteFilters = {}) => {
 
         try {
             currentFilters.current = filters;
-            const url = new URL(API_URL);
+            const params = new URLSearchParams();
+            if (filters.query) params.append('q', filters.query);
+            if (filters.fechaInicio) params.append('fecha_inicio', filters.fechaInicio);
+            if (filters.fechaFin) params.append('fecha_fin', filters.fechaFin);
+            params.append('page', pageNum.toString());
+            params.append('limit', '10');
 
-            // Lógica original de fechas y texto
-            if (filters.query) url.searchParams.append('q', filters.query);
-            if (filters.fechaInicio) url.searchParams.append('fecha_inicio', filters.fechaInicio);
-            if (filters.fechaFin) url.searchParams.append('fecha_fin', filters.fechaFin);
-
-            // Lógica nueva de paginación
-            url.searchParams.append('page', pageNum.toString());
-            url.searchParams.append('limit', '10');
-
-            const response = await fetch(url.toString());
+            const response = await apiFetch(`/pacientes?${params.toString()}`);
             if (!response.ok) throw new Error('Error al obtener pacientes');
 
             const rawData = await response.json();

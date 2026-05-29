@@ -1,8 +1,9 @@
-mod modules; // 👈 Importas tu nueva estructura
+mod modules;
 
 use axum::{
     Router,
     http::Method,
+    middleware,
     routing::{get, post},
 };
 use dotenvy::dotenv;
@@ -10,9 +11,9 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::env;
 use tower_http::cors::{Any, CorsLayer};
 
-// Importamos de forma limpia los handlers de cada módulo
 use crate::modules::{
     agenda::handlers::{calcular_agenda_handler, pacientes_por_fecha},
+    auth::handlers::{auth_middleware, login, seed_default_user},
     pacientes::handlers::{
         aplicar_vacunas, batch_next_vaccines, get_paciente_perfil, get_pacientes_agenda,
         get_pacientes_search, update_paciente,
@@ -24,7 +25,6 @@ use crate::modules::{
 
 #[derive(Clone)]
 pub struct AppState {
-    // 👈 Debe ser pub
     pub db: PgPool,
 }
 
@@ -46,22 +46,60 @@ async fn main() {
 
     println!("✅ Conectado a PostgreSQL exitosamente");
 
+    // Auto-seed: crea usuario admin si no existe ninguno
+    let exists = sqlx::query_scalar::<_, i64>("SELECT COUNT(*) FROM personal_salud")
+        .fetch_one(&pool)
+        .await
+        .unwrap_or(0);
+    if exists == 0 {
+        let hash = bcrypt::hash("1234", 12).unwrap();
+        sqlx::query(
+            "INSERT INTO personal_salud (cedula, pin_hash, nombre_completo, rol) VALUES ($1, $2, $3, $4)",
+        )
+        .bind("admin")
+        .bind(&hash)
+        .bind("Administrador")
+        .bind("coordinador")
+        .execute(&pool)
+        .await
+        .unwrap();
+        println!("👤 Usuario admin creado — Cédula: admin, PIN: 1234");
+
+        let hash2 = bcrypt::hash("1234", 12).unwrap();
+        sqlx::query(
+            "INSERT INTO personal_salud (cedula, pin_hash, nombre_completo, rol) VALUES ($1, $2, $3, $4)",
+        )
+        .bind("30911147")
+        .bind(&hash2)
+        .bind("Andrés")
+        .bind("enfermero")
+        .execute(&pool)
+        .await
+        .unwrap();
+        println!("👤 Usuario 30911147 creado — Cédula: 30911147, PIN: 1234");
+    }
+
     let state = AppState { db: pool };
 
-    // El enrutamiento se mantiene igual pero ahora apunta a los módulos
     let app = Router::new()
-        .route("/pacientes", post(crear_paciente).get(get_pacientes_agenda))
-        .route("/pacientes/search", get(get_pacientes_search))
-        .route(
-            "/pacientes/{id}",
-            get(get_paciente_perfil).put(update_paciente),
+        .route("/auth/login", post(login))
+        .route("/auth/seed", get(seed_default_user))
+        .merge(
+            Router::new()
+                .route("/pacientes", post(crear_paciente).get(get_pacientes_agenda))
+                .route("/pacientes/search", get(get_pacientes_search))
+                .route(
+                    "/pacientes/{id}",
+                    get(get_paciente_perfil).put(update_paciente),
+                )
+                .route("/biologicos", get(listar_biologicos))
+                .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
+                .route("/pacientes/next-vaccines", post(batch_next_vaccines))
+                .route("/validador/esquema", post(evaluar_esquema))
+                .route("/agenda", post(calcular_agenda_handler))
+                .route("/agenda/pacientes-por-fecha", get(pacientes_por_fecha))
+                .layer(middleware::from_fn(auth_middleware)),
         )
-        .route("/biologicos", get(listar_biologicos))
-        .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
-        .route("/pacientes/next-vaccines", post(batch_next_vaccines))
-        .route("/validador/esquema", post(evaluar_esquema))
-        .route("/agenda", post(calcular_agenda_handler))
-        .route("/agenda/pacientes-por-fecha", get(pacientes_por_fecha))
         .layer(cors)
         .with_state(state);
 

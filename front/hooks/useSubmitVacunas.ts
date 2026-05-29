@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const API_BASE = 'http://localhost:3000';
+import { apiFetch } from './useApi';
 
 export type SubmitState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -13,9 +12,8 @@ export function useSubmitVacunas(pacienteId: number) {
     setError('');
 
     try {
-      const res = await fetch(`${API_BASE}/pacientes/${pacienteId}/vacunas`, {
+      const res = await apiFetch(`/pacientes/${pacienteId}/vacunas`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(vacunas),
       });
 

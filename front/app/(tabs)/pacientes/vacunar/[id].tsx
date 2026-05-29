@@ -3,13 +3,12 @@ import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollVi
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TopBar } from '../../../../components/TopBar';
+import { apiFetch } from '../../../../hooks/useApi';
 import { useBiologicos, Biologico } from '../../../../hooks/useBiologicos';
 import { useSubmitVacunas, SubmitState } from '../../../../hooks/useSubmitVacunas';
 import BiologicosModal from '../../../../components/registro/modales/BiologicosModal';
 import ModalConfirmacionEdicion from '../../../../components/registro/modales/ModalConfirmacionEdicion';
 import ModalExitoEdicion from '../../../../components/registro/modales/ModalExitoEdicion';
-
-const API_BASE = 'http://localhost:3000';
 
 interface VacunaDisponible {
   biologico_id: number;
@@ -49,7 +48,7 @@ export default function VacunarPaciente() {
 
   useEffect(() => {
     fetchBiologicos();
-    fetch(`${API_BASE}/pacientes/${pacienteId}`)
+    apiFetch(`/pacientes/${pacienteId}`)
       .then((r) => r.json())
       .then((data) => {
         console.log('🔍 Paciente API:', JSON.stringify(data.paciente));
@@ -72,9 +71,8 @@ export default function VacunarPaciente() {
         console.log('🔍 Payload validador:', JSON.stringify(payload));
 
         setValidando(true);
-        return fetch(`${API_BASE}/validador/esquema`, {
+        return apiFetch('/validador/esquema', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
       })

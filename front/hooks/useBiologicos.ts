@@ -1,8 +1,6 @@
 // front/hooks/useBiologicos.ts
 import { useState, useCallback } from 'react';
-
-// Recuerda usar tu IP de la red local
-const API_URL = 'http://localhost:3000/biologicos';
+import { apiFetch } from './useApi';
 
 // Interfaces tipadas para aprovechar TypeScript en tu UI
 export interface Dosis {
@@ -26,7 +24,7 @@ export const useBiologicos = () => {
     const fetchBiologicos = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(API_URL);
+            const response = await apiFetch('/biologicos');
             if (!response.ok) throw new Error('Error al obtener el catálogo de biológicos');
 
             const data = await response.json();

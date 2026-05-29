@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaVi
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { TopBar } from '../../../../components/TopBar';
+import { apiFetch } from '../../../../hooks/useApi';
 
 import ModalConfirmacionEdicion from '../../../../components/registro/modales/ModalConfirmacionEdicion';
 import ModalExitoEdicion from '../../../../components/registro/modales/ModalExitoEdicion';
@@ -48,8 +49,8 @@ export default function EditarPacienteScreen() {
         const fetchData = async () => {
             try {
                 const [perfilRes, bioRes] = await Promise.all([
-                    fetch(`http://localhost:3000/pacientes/${id}`),
-                    fetch('http://localhost:3000/biologicos'),
+                    apiFetch(`/pacientes/${id}`),
+                    apiFetch('/biologicos'),
                 ]);
 
                 if (perfilRes.ok) {
@@ -144,9 +145,8 @@ export default function EditarPacienteScreen() {
                 alergias: alergias.map((a) => a.biologico_id),
             };
 
-            const res = await fetch(`http://localhost:3000/pacientes/${id}`, {
+            const res = await apiFetch(`/pacientes/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 

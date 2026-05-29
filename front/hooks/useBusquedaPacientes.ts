@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-
-const API_URL = 'http://localhost:3000/pacientes/search';
+import { apiFetch } from './useApi';
 
 export interface PacienteSearch {
     id: number;
@@ -32,14 +31,13 @@ export const useBusquedaPacientes = () => {
             currentQuery.current = query;
             currentEstado.current = estado;
 
-            const url = new URL(API_URL);
-            if (query.length >= 1) url.searchParams.append('q', query);
-            if (estado !== 'todos') url.searchParams.append('estado', estado);
+            const params = new URLSearchParams();
+            if (query.length >= 1) params.append('q', query);
+            if (estado !== 'todos') params.append('estado', estado);
+            params.append('page', pageNum.toString());
+            params.append('limit', '10');
 
-            url.searchParams.append('page', pageNum.toString());
-            url.searchParams.append('limit', '10');
-
-            const response = await fetch(url.toString());
+            const response = await apiFetch(`/pacientes/search?${params.toString()}`);
             if (!response.ok) throw new Error('Error al buscar pacientes');
 
             const rawData = await response.json();

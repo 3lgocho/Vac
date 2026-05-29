@@ -2,9 +2,7 @@
 import { useState } from 'react';
 import { useRegistroStore } from '../store/registroStore';
 import { SubmitState } from '../components/ConfirmacionFormulario';
-
-// Ajusta esta IP a la de tu PC en la red local
-const API_PACIENTES = 'http://localhost:3000/pacientes';
+import { apiFetch } from './useApi';
 
 export const useSubmitPaciente = () => {
     // Leemos el estado global directamente aquí, sin pasarlo por props
@@ -51,9 +49,8 @@ export const useSubmitPaciente = () => {
         };
 
         try {
-            const response = await fetch(API_PACIENTES, {
+            const response = await apiFetch('/pacientes', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRegistroStore } from '../store/registroStore';
-
-const API_VALIDADOR = 'http://localhost:3000/validador/esquema';
+import { apiFetch } from './useApi';
 
 export interface VacunaDisponible {
     biologico_id: number;
@@ -40,9 +39,8 @@ export function useValidacion() {
         setError(null);
 
         try {
-            const res = await fetch(API_VALIDADOR, {
+            const res = await apiFetch('/validador/esquema', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
