@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Image, FlatList, ActivityIndicator } from
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendario } from '../../../components/Calendario';
+import { TopBar } from '../../../components/TopBar';
 import { useAgendaPorFecha } from '../../../hooks/useAgendaPorFecha';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -39,15 +40,19 @@ export default function AgendaScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background">
-            <View className="bg-surface border-b border-outline-variant flex-row justify-between items-center px-5 h-14">
-                <TouchableOpacity className="w-10 h-10 items-center justify-center rounded-full active:bg-surface-container-low">
-                    <MaterialIcons name="menu" size={24} color="#3e4949" />
-                </TouchableOpacity>
-                <Text className="text-primary font-semibold text-base tracking-tight">Agenda de Vacunación</Text>
-                <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high">
-                    <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} className="w-full h-full" />
-                </TouchableOpacity>
-            </View>
+            <TopBar
+                title="Agenda de Vacunación"
+                leftSlot={
+                    <TouchableOpacity className="w-10 h-10 items-center justify-center -ml-2">
+                        <MaterialIcons name="menu" size={24} color="#374151" />
+                    </TouchableOpacity>
+                }
+                rightSlot={
+                    <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high">
+                        <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} className="w-full h-full" />
+                    </TouchableOpacity>
+                }
+            />
 
             <View className="flex-1 px-5 pt-4 max-w-2xl mx-auto w-full">
                 <FlatList

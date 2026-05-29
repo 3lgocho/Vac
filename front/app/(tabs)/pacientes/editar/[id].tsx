@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, TextInput, Alert, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { TopBar } from '../../../../components/TopBar';
 
 import ModalConfirmacionEdicion from '../../../../components/registro/modales/ModalConfirmacionEdicion';
 import ModalExitoEdicion from '../../../../components/registro/modales/ModalExitoEdicion';
@@ -182,24 +183,26 @@ export default function EditarPacienteScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-surface">
-            {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-surface-container-highest">
-                <TouchableOpacity onPress={handleBack} className="p-2 -ml-2">
-                    <MaterialIcons name="close" size={24} color="#374151" />
-                </TouchableOpacity>
-                <Text className="text-primary font-semibold text-base tracking-tight">Editar Paciente</Text>
-                <TouchableOpacity
-                    onPress={() => setShowOverwriteModal(true)}
-                    disabled={isSaving}
-                    className="p-2 -mr-2"
-                >
-                    {isSaving ? (
-                        <ActivityIndicator size="small" color="#008080" />
-                    ) : (
-                        <Text className="font-label-lg font-bold text-primary">Guardar</Text>
-                    )}
-                </TouchableOpacity>
-            </View>
+            <TopBar
+                title="Editar Paciente"
+                leftSlot={
+                    <TouchableOpacity onPress={handleBack} className="w-10 h-10 items-center justify-center -ml-2">
+                        <MaterialIcons name="close" size={24} color="#374151" />
+                    </TouchableOpacity>
+                }
+                rightSlot={
+                    <TouchableOpacity
+                        onPress={() => setShowOverwriteModal(true)}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <ActivityIndicator size="small" color="#008080" />
+                        ) : (
+                            <Text className="font-label-lg font-bold text-primary">Guardar</Text>
+                        )}
+                    </TouchableOpacity>
+                }
+            />
 
             <ScrollView className="flex-1 px-5 py-6 pb-12" showsVerticalScrollIndicator={false}>
                 {/* IDENTIDAD */}

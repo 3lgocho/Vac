@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { TopBar } from '../../../components/TopBar';
 
 type TabType = 'historial' | 'alergias' | 'datos';
 
@@ -70,19 +71,15 @@ export default function PacientePerfilScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-surface">
-            {/* Header */}
-            <View className="flex-row items-center justify-between px-4 py-3 bg-surface-container-lowest border-b border-surface-container-highest">
-                <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-                    <MaterialIcons name="arrow-back" size={24} color="#374151" />
-                </TouchableOpacity>
-                <Text className="text-primary font-semibold text-base tracking-tight">Perfil del Paciente</Text>
-                <TouchableOpacity
-                    onPress={() => router.push(`/pacientes/editar/${id}` as any)}
-                    className="p-2 -mr-2"
-                >
-                    <MaterialIcons name="edit" size={22} color="#008080" />
-                </TouchableOpacity>
-            </View>
+            <TopBar
+                title="Perfil del Paciente"
+                onBack={() => router.back()}
+                rightSlot={
+                    <TouchableOpacity onPress={() => router.push(`/pacientes/editar/${id}` as any)}>
+                        <MaterialIcons name="edit" size={22} color="#008080" />
+                    </TouchableOpacity>
+                }
+            />
 
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
                 {/* Cabecera */}

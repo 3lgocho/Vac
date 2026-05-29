@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { useRegistroStore } from '../store/registroStore';
+import { TopBar } from './TopBar';
 
 export function TopBarRegistro() {
     const router = useRouter();
@@ -38,25 +39,19 @@ export function TopBarRegistro() {
 
     return (
         <>
-            {/* Top Bar Visual */}
-            <View className="bg-surface-container-lowest border-b border-surface-container-highest h-16 flex flex-row items-center justify-between px-4 w-full z-50">
-
-                {/* IZQUIERDA: Botón Atrás */}
-                <TouchableOpacity onPress={handleBackPress} className="w-12 h-12 flex items-center justify-center">
-                    <MaterialIcons name="arrow-back" size={24} color="#008080" />
-                </TouchableOpacity>
-
-                {/* CENTRO: Título */}
-                <Text className="text-primary font-semibold text-base tracking-tight">
-                    Registro de Vacunación
-                </Text>
-
-                {/* DERECHA: Botón Cancelar (X) */}
-                <TouchableOpacity onPress={handleCancelPress} className="w-12 h-12 flex items-center justify-center">
-                    <MaterialIcons name="close" size={24} color="#008080" />
-                </TouchableOpacity>
-
-            </View>
+            <TopBar
+                title="Registro de Vacunación"
+                leftSlot={
+                    <TouchableOpacity onPress={handleBackPress} className="w-10 h-10 items-center justify-center -ml-2">
+                        <MaterialIcons name="arrow-back" size={24} color="#374151" />
+                    </TouchableOpacity>
+                }
+                rightSlot={
+                    <TouchableOpacity onPress={handleCancelPress} className="w-10 h-10 items-center justify-center -mr-2">
+                        <MaterialIcons name="close" size={24} color="#374151" />
+                    </TouchableOpacity>
+                }
+            />
 
             {/* Modal Personalizado de Confirmación */}
             <Modal

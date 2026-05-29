@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, ActivityIndicator, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { TopBar } from '../../../../components/TopBar';
 import { useBiologicos, Biologico } from '../../../../hooks/useBiologicos';
 import { useSubmitVacunas, SubmitState } from '../../../../hooks/useSubmitVacunas';
 import BiologicosModal from '../../../../components/registro/modales/BiologicosModal';
@@ -175,15 +176,10 @@ export default function VacunarPaciente() {
 
   return (
     <SafeAreaView className="bg-background flex-1">
-      {/* Top Bar */}
-      <View className="flex flex-row items-center px-margin-mobile pt-4 pb-3 border-b border-gray-200 bg-white">
-        <TouchableOpacity onPress={handleBack} className="w-10 h-10 items-center justify-center -ml-2">
-          <MaterialIcons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text className="flex-1 text-headline-sm font-headline-sm text-on-surface text-center mr-6">
-          Agregar Vacunas
-        </Text>
-      </View>
+      <TopBar
+        title="Agregar Vacunas"
+        onBack={handleBack}
+      />
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
