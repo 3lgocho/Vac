@@ -12,7 +12,7 @@ export default function Paso2() {
     const router = useRouter();
 
     return (
-        <SafeAreaView className="bg-surface flex-1">
+        <SafeAreaView className="bg-background flex-1">
             <ScrollView
                 className="w-full h-full"
                 contentContainerClassName="max-w-3xl mx-auto w-full px-margin-mobile pt-stack-lg flex-grow"

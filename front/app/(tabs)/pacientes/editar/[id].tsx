@@ -175,14 +175,14 @@ export default function EditarPacienteScreen() {
 
     if (loading) {
         return (
-            <View className="flex-1 items-center justify-center bg-surface">
+                    <View className="flex-1 items-center justify-center bg-background">
                 <ActivityIndicator size="large" color="#008080" />
             </View>
         );
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-surface">
+        <SafeAreaView className="flex-1 bg-background">
             <TopBar
                 title="Editar Paciente"
                 leftSlot={

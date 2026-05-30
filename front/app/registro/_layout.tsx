@@ -5,7 +5,7 @@ import { ProgressBarRegistro } from '../../components/ProgressBarRegistro'; // <
 
 export default function RegistroLayout() {
     return (
-        <View style={{ flex: 1 }}>
+        <View className="flex-1 bg-background">
 
             <TopBarRegistro />
 

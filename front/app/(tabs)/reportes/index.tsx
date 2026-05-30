@@ -1,14 +1,9 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, SafeAreaView } from 'react-native';
 
 export default function ReportesScreen() {
     return (
-        <View style={styles.container}>
-            <Text style={styles.text}>Pantalla de Reportes</Text>
-        </View>
+        <SafeAreaView className="flex-1 bg-background items-center justify-center">
+            <Text className="text-lg text-on-surface-variant">Pantalla de Reportes</Text>
+        </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-    text: { fontSize: 20, color: '#333' }
-});

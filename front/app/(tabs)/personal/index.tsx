@@ -198,7 +198,7 @@ export default function PersonalScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background relative">
-            <View className="flex-row items-center justify-between px-5 h-16 border-b border-outline-variant bg-surface">
+                <View className="flex-row items-center justify-between px-5 h-16 border-b border-outline-variant bg-background">
                 <Text className="text-primary font-bold text-xl tracking-tight">Gestión de Personal</Text>
                 <TouchableOpacity onPress={openCreateModal} className="w-10 h-10 bg-primary rounded-full items-center justify-center">
                     <MaterialIcons name="add" size={24} color="white" />

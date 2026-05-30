@@ -9,7 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 const TabItem = ({ name, title, focused }: { name: any, title: string, focused: boolean }) => {
     return (
         <View className={`flex flex-col items-center justify-center transition-all ${focused
-                ? 'bg-[#008080] rounded-full px-4 py-1.5 min-w-[4rem]' // Píldora activa (Tu color primary-container)
+                ? 'bg-primary rounded-full px-4 py-1.5 min-w-[4rem]' // Píldora activa (Tu color primary)
                 : 'bg-transparent w-16 h-14' // Estado inactivo
             }`}>
             <MaterialIcons
