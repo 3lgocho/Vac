@@ -1,20 +1,39 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, FlatList, ActivityIndicator, Modal, ScrollView, Animated, Keyboard, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, FlatList, ActivityIndicator, Modal, ScrollView, Animated, Keyboard, LayoutAnimation, Platform, UIManager, Alert, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useBusquedaPacientes, FiltroEstado } from '../../hooks/useBusquedaPacientes';
 import { useNextVaccines } from '../../hooks/useNextVaccines';
 import { PacienteCard } from '../../components/PacienteCard';
+import { useAuthStore } from '../../store/authStore';
+import { apiFetch } from '../../hooks/useApi';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+function jwtPayload(token: string) {
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(base64);
+    return JSON.parse(decodeURIComponent(binary.split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+  } catch { return null; }
+}
+
 export default function Dashboard() {
   const router = useRouter();
+  const authNombre = useAuthStore(s => s.nombre);
+  const authRol = useAuthStore(s => s.rol);
+  const authToken = useAuthStore(s => s.token);
+  const logout = useAuthStore(s => s.logout);
+  const primerNombre = authNombre?.split(' ')[0] || 'Usuario';
+
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoActivo, setEstadoActivo] = useState<FiltroEstado>('todos');
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalFiltros, setModalFiltros] = useState(false);
+  const [menuPerfil, setMenuPerfil] = useState(false);
+  const [modalPin, setModalPin] = useState(false);
+  const [nuevoPin, setNuevoPin] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
@@ -91,10 +110,14 @@ export default function Dashboard() {
       >
         <View className="flex flex-row w-full justify-between items-center px-margin-mobile pt-[48px] pb-stack-lg mb-stack-md border-b border-gray-200">
           <View>
-            <Text className="font-headline-md text-headline-md text-on-surface">👋 Hola, Andreina</Text>
-            <Text className="font-body-sm text-body-sm text-on-surface-variant">Centro de Vacunación</Text>
+            <Text className="font-headline-md text-headline-md text-on-surface">👋 Hola, {primerNombre}</Text>
+            <Text className="font-body-sm text-body-sm text-on-surface-variant">Ambulatorio Los Robles</Text>
           </View>
-          <Image source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyXWlJKlp21vjJAIIQUyIbu5b_uXAUvuA_POqNKTAt65UBBY8OeYsTDNUxbsfJbQuOTe6y_5Xz0PxTzq9HB7_gCym5EwzUgtV7O4bXjbAPRgTS6lEZIQMzWcsy41oCx-X1GjuptTXRmpNRXbJ6EKD5qmtRjPxHKTKElfZ0hylFrDQckuK66Og2wDerc4mAHuhUiSWCws44WO29yPKSc60BfeR5uewVpXPuYryqs-39AlfBlOEtcoVQp3Z3Jj8wYTZMmjVi87GBKRE" }} className="w-[48px] h-[48px] rounded-full border-2 border-primary" />
+          <TouchableOpacity onPress={() => setMenuPerfil(true)}>
+            <View className="w-[48px] h-[48px] rounded-full border-2 border-primary items-center justify-center bg-surface-container-high">
+              <Text className="text-lg font-bold text-primary">{authNombre?.charAt(0).toUpperCase() || 'U'}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </Animated.View>
 
@@ -119,7 +142,7 @@ export default function Dashboard() {
             )}
           </View>
           <TouchableOpacity
-            onPress={() => setModalVisible(true)}
+            onPress={() => setModalFiltros(true)}
             className="w-touch-target-min h-touch-target-min flex items-center justify-center rounded-full bg-surface-container-low border border-outline-variant"
           >
             <MaterialIcons name="tune" size={24} color="#4B5563" />
@@ -201,14 +224,14 @@ export default function Dashboard() {
       <Modal
         animationType="slide"
         transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        visible={modalFiltros}
+        onRequestClose={() => setModalFiltros(false)}
       >
         <View className="flex-1 justify-end bg-black/50">
           <View className="bg-surface-container-lowest rounded-t-3xl p-6">
             <View className="flex flex-row justify-between items-center mb-6">
               <Text className="font-headline-sm text-on-surface">Filtrar Pacientes</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <TouchableOpacity onPress={() => setModalFiltros(false)}>
                 <MaterialIcons name="close" size={24} color="#4B5563" />
               </TouchableOpacity>
             </View>
@@ -221,13 +244,88 @@ export default function Dashboard() {
             </View>
 
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
+              onPress={() => setModalFiltros(false)}
               className="w-full h-touch-target-min bg-primary rounded-xl items-center justify-center"
             >
               <Text className="text-on-primary font-label-lg">APLICAR FILTROS</Text>
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Perfil - Menú */}
+      <Modal visible={menuPerfil} transparent animationType="fade" onRequestClose={() => setMenuPerfil(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={() => setMenuPerfil(false)} className="flex-1 bg-black/50 justify-end">
+          <View className="bg-surface rounded-t-3xl p-5 pb-10">
+            <View className="items-center mb-4">
+              <View className="w-16 h-16 rounded-full border-2 border-primary items-center justify-center bg-surface-container-high mb-2">
+                <Text className="text-2xl font-bold text-primary">{authNombre?.charAt(0).toUpperCase() || 'U'}</Text>
+              </View>
+              <Text className="text-lg font-bold text-on-surface">{authNombre}</Text>
+              <Text className="text-sm text-on-surface-variant">{authRol === 'coordinador' ? 'Coordinador' : 'Enfermero'}</Text>
+            </View>
+
+            {authRol === 'coordinador' && (
+              <TouchableOpacity onPress={() => { setMenuPerfil(false); setModalPin(true); }} className="flex-row items-center p-4 border-b border-outline-variant">
+                <MaterialIcons name="password" size={24} color="#3e4949" />
+                <Text className="text-base ml-4 font-medium text-on-surface">Cambiar PIN</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity onPress={() => { setMenuPerfil(false); Alert.alert('Cerrar Sesión', '¿Estás seguro que deseas cerrar sesión?', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Cerrar sesión', style: 'destructive', onPress: () => logout() }]); }} className="flex-row items-center p-4">
+              <MaterialIcons name="logout" size={24} color="#ba1a1a" />
+              <Text className="text-base ml-4 font-medium text-error">Cerrar sesión</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Cambiar PIN Modal */}
+      <Modal visible={modalPin} transparent animationType="fade" onRequestClose={() => setModalPin(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-black/50 justify-center p-5">
+          <View className="bg-surface rounded-2xl p-6">
+            <Text className="text-xl font-bold text-on-surface mb-2">Cambiar PIN</Text>
+            <Text className="text-on-surface-variant mb-4">Ingresa el nuevo PIN de acceso.</Text>
+
+            <TextInput
+              className="bg-surface-container border border-outline-variant rounded-lg p-4 mb-6 text-on-surface text-center text-2xl tracking-widest"
+              placeholder="****"
+              keyboardType="numeric"
+              secureTextEntry
+              maxLength={8}
+              value={nuevoPin}
+              onChangeText={setNuevoPin}
+              autoFocus
+            />
+
+            <View className="flex-row justify-end gap-3">
+              <TouchableOpacity onPress={() => setModalPin(false)} className="px-5 py-3 rounded-lg">
+                <Text className="text-primary font-semibold">Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={async () => {
+                if (!nuevoPin || nuevoPin.length < 4) {
+                  Alert.alert('Error', 'El PIN debe tener al menos 4 caracteres');
+                  return;
+                }
+                try {
+                  const payload = jwtPayload(authToken || '');
+                  if (!payload?.sub) throw new Error('No se pudo obtener el ID del usuario');
+                  await apiFetch(`/personal/${payload.sub}/pin`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ pin: nuevoPin }),
+                  });
+                  Alert.alert('Éxito', 'PIN actualizado correctamente');
+                  setModalPin(false);
+                  setNuevoPin('');
+                } catch (err: any) {
+                  Alert.alert('Error', err.message);
+                }
+              }} className="bg-primary px-5 py-3 rounded-lg">
+                <Text className="text-white font-semibold">Guardar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
