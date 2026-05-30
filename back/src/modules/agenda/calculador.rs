@@ -224,15 +224,7 @@ pub fn calcular_agenda(
         .iter()
         .map(|d| {
             let mut fecha = calcular_fecha(paciente, d);
-            let mut estado = determinar_estado(fecha);
-
-            // Si el paciente nunca ha recibido este biológico en el sistema,
-            // la fecha calculada (edad mínima) no indica atraso real:
-            // puede que ya se haya vacunado antes sin registro digital.
-            if !tiene_dosis_biologico(paciente, d.biologico_id) && fecha < hoy() {
-                fecha = hoy();
-                estado = "Para Hoy".to_string();
-            }
+            let estado = determinar_estado(fecha);
 
             DosisProgramada {
                 biologico_id: d.biologico_id,

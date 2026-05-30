@@ -36,24 +36,21 @@ fn tiene_dosis(paciente: &PerfilPaciente, biologico_id: i32, dosis_id: i32) -> b
         .any(|v| v.biologico_id == biologico_id && v.dosis_id == dosis_id)
 }
 
-fn push_si_no_aplicada(
+fn agregar_vacuna(
     disponibles: &mut Vec<VacunaDisponible>,
-    paciente: &PerfilPaciente,
     bio_id: i32,
     dosis_id: i32,
     nombre: &str,
     dosis_label: &str,
     advertencia: Option<&str>,
 ) {
-    if !tiene_dosis(paciente, bio_id, dosis_id) {
-        disponibles.push(VacunaDisponible {
-            biologico_id: bio_id,
-            nombre: nombre.to_string(),
-            dosis_id,
-            dosis_a_aplicar: dosis_label.to_string(),
-            advertencia: advertencia.map(|s| s.to_string()),
-        });
-    }
+    disponibles.push(VacunaDisponible {
+        biologico_id: bio_id,
+        nombre: nombre.to_string(),
+        dosis_id,
+        dosis_a_aplicar: dosis_label.to_string(),
+        advertencia: advertencia.map(|s| s.to_string()),
+    });
 }
 
 // ============================================================
@@ -63,20 +60,14 @@ pub struct ReglaBcg;
 
 impl ReglaVacunacion for ReglaBcg {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
+        let mut disponibles = vec![];
         if tiene_biologico(paciente, 1) {
-            return vec![];
+            return disponibles;
         }
         if edad_anios(paciente.fecha_nacimiento) <= 7 {
-            vec![VacunaDisponible {
-                biologico_id: 1,
-                nombre: "BCG".to_string(),
-                dosis_id: 1,
-                dosis_a_aplicar: "DU".to_string(),
-                advertencia: None,
-            }]
-        } else {
-            vec![]
+            agregar_vacuna(&mut disponibles, 1, 1, "BCG", "DU", None);
         }
+        disponibles
     }
 }
 
@@ -88,16 +79,26 @@ pub struct ReglaHepatitisB;
 impl ReglaVacunacion for ReglaHepatitisB {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
         let meses = edad_meses(paciente.fecha_nacimiento);
+        let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if !tiene_dosis(paciente, 2, 17) && meses >= 0 {
-            push_si_no_aplicada(&mut disponibles, paciente, 2, 17, "Hepatitis B", "1D", None);
+        // Límite de edad pediátrica
+        if anios >= 1 {
+            return disponibles;
         }
-        if meses >= 1 {
-            push_si_no_aplicada(&mut disponibles, paciente, 2, 18, "Hepatitis B", "2D", None);
-        }
-        if meses >= 6 {
-            push_si_no_aplicada(&mut disponibles, paciente, 2, 19, "Hepatitis B", "3D", None);
+
+        if !tiene_dosis(paciente, 2, 17) {
+            if meses >= 0 {
+                agregar_vacuna(&mut disponibles, 2, 17, "Hepatitis B", "1D", Some("Ideal en primeras 24h"));
+            }
+        } else if !tiene_dosis(paciente, 2, 18) {
+            if meses >= 1 {
+                agregar_vacuna(&mut disponibles, 2, 18, "Hepatitis B", "2D", None);
+            }
+        } else if !tiene_dosis(paciente, 2, 19) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 2, 19, "Hepatitis B", "3D", None);
+            }
         }
 
         disponibles
@@ -118,11 +119,14 @@ impl ReglaVacunacion for ReglaRotavirus {
             return disponibles;
         }
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 3, 3, "Rotavirus", "1D", None);
-        }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 3, 4, "Rotavirus", "2D", None);
+        if !tiene_dosis(paciente, 3, 3) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 3, 3, "Rotavirus", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 3, 4) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 3, 4, "Rotavirus", "2D", None);
+            }
         }
 
         disponibles
@@ -140,47 +144,36 @@ impl ReglaVacunacion for ReglaNeumococo13 {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 9, 35, "Neumococo 13 Valente", "1D", None);
+        // Límite pediátrico regular
+        if anios >= 5 {
+            return disponibles;
         }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 9, 36, "Neumococo 13 Valente", "2D", None);
-        }
-        if meses >= 6 {
-            push_si_no_aplicada(&mut disponibles, paciente, 9, 37, "Neumococo 13 Valente", "3D", None);
-        }
-        if meses >= 12 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                9,
-                38,
-                "Neumococo 13 Valente",
-                "1REF",
-                Some("Refuerzo a los 12 meses"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                9,
-                39,
-                "Neumococo 13 Valente",
-                "2REF",
-                Some("Segundo refuerzo a partir de los 4 años"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                9,
-                40,
-                "Neumococo 13 Valente",
-                "DA",
-                Some("Dosis Adicional para grupos de riesgo"),
-            );
+
+        if !tiene_dosis(paciente, 9, 35) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 9, 35, "Neumococo 13 Valente", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 9, 36) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 9, 36, "Neumococo 13 Valente", "2D", None);
+            }
+        } else if !tiene_dosis(paciente, 9, 37) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 9, 37, "Neumococo 13 Valente", "3D", None);
+            }
+        } else if !tiene_dosis(paciente, 9, 38) {
+            if meses >= 12 {
+                agregar_vacuna(&mut disponibles, 9, 38, "Neumococo 13 Valente", "1REF", Some("Refuerzo a los 12 meses"));
+            }
+        } else if !tiene_dosis(paciente, 9, 39) {
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 9, 39, "Neumococo 13 Valente", "2REF", Some("Segundo refuerzo a partir de los 4 años"));
+            }
+        } else if !tiene_dosis(paciente, 9, 40) {
+            // Dosis adicional puede quedar abierta, pero si el límite es 5 años no se mostrará.
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 9, 40, "Neumococo 13 Valente", "DA", Some("Dosis Adicional para grupos de riesgo"));
+            }
         }
 
         disponibles
@@ -198,47 +191,34 @@ impl ReglaVacunacion for ReglaPentavalente {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 4, 5, "Pentavalente", "1D", None);
+        if anios >= 5 {
+            return disponibles; // Después de los 5 años, no se aplica Pentavalente (se usa dTpa/Td)
         }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 4, 6, "Pentavalente", "2D", None);
-        }
-        if meses >= 6 {
-            push_si_no_aplicada(&mut disponibles, paciente, 4, 7, "Pentavalente", "3D", None);
-        }
-        if meses >= 15 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                4,
-                20,
-                "Pentavalente",
-                "1REF",
-                Some("Refuerzo a los 15-18 meses"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                4,
-                21,
-                "Pentavalente",
-                "2REF",
-                Some("Refuerzo al ingreso escolar (4-6 años)"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                4,
-                22,
-                "Pentavalente",
-                "DA",
-                Some("Dosis Adicional para grupos de riesgo"),
-            );
+
+        if !tiene_dosis(paciente, 4, 5) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 4, 5, "Pentavalente", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 4, 6) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 4, 6, "Pentavalente", "2D", None);
+            }
+        } else if !tiene_dosis(paciente, 4, 7) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 4, 7, "Pentavalente", "3D", None);
+            }
+        } else if !tiene_dosis(paciente, 4, 20) {
+            if meses >= 15 {
+                agregar_vacuna(&mut disponibles, 4, 20, "Pentavalente", "1REF", Some("Refuerzo a los 15-18 meses"));
+            }
+        } else if !tiene_dosis(paciente, 4, 21) {
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 4, 21, "Pentavalente", "2REF", Some("Refuerzo al ingreso escolar (4-6 años)"));
+            }
+        } else if !tiene_dosis(paciente, 4, 22) {
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 4, 22, "Pentavalente", "DA", Some("Dosis Adicional para grupos de riesgo"));
+            }
         }
 
         disponibles
@@ -253,16 +233,25 @@ pub struct ReglaPolioInyectable;
 impl ReglaVacunacion for ReglaPolioInyectable {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
         let meses = edad_meses(paciente.fecha_nacimiento);
+        let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 5, 23, "Polio Inyectable", "1D", None);
+        if anios >= 5 {
+            return disponibles;
         }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 5, 24, "Polio Inyectable", "2D", None);
-        }
-        if meses >= 6 {
-            push_si_no_aplicada(&mut disponibles, paciente, 5, 25, "Polio Inyectable", "3D", None);
+
+        if !tiene_dosis(paciente, 5, 23) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 5, 23, "Polio Inyectable", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 5, 24) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 5, 24, "Polio Inyectable", "2D", None);
+            }
+        } else if !tiene_dosis(paciente, 5, 25) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 5, 25, "Polio Inyectable", "3D", None);
+            }
         }
 
         disponibles
@@ -280,47 +269,34 @@ impl ReglaVacunacion for ReglaPolioOral {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 10, 41, "Polio Oral", "1D", None);
+        if anios >= 6 {
+            return disponibles; // Límite razonable para dosis infantiles de Polio Oral
         }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 10, 42, "Polio Oral", "2D", None);
-        }
-        if meses >= 6 {
-            push_si_no_aplicada(&mut disponibles, paciente, 10, 43, "Polio Oral", "3D", None);
-        }
-        if meses >= 18 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                10,
-                44,
-                "Polio Oral",
-                "1REF",
-                Some("Primer refuerzo a los 18 meses"),
-            );
-        }
-        if anios >= 5 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                10,
-                45,
-                "Polio Oral",
-                "2REF",
-                Some("Segundo refuerzo a los 5 años"),
-            );
-        }
-        if anios >= 5 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                10,
-                46,
-                "Polio Oral",
-                "DA",
-                Some("Dosis Adicional para grupos de riesgo"),
-            );
+
+        if !tiene_dosis(paciente, 10, 41) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 10, 41, "Polio Oral", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 10, 42) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 10, 42, "Polio Oral", "2D", None);
+            }
+        } else if !tiene_dosis(paciente, 10, 43) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 10, 43, "Polio Oral", "3D", None);
+            }
+        } else if !tiene_dosis(paciente, 10, 44) {
+            if meses >= 18 {
+                agregar_vacuna(&mut disponibles, 10, 44, "Polio Oral", "1REF", Some("Primer refuerzo a los 18 meses"));
+            }
+        } else if !tiene_dosis(paciente, 10, 45) {
+            if anios >= 5 {
+                agregar_vacuna(&mut disponibles, 10, 45, "Polio Oral", "2REF", Some("Segundo refuerzo a los 5 años"));
+            }
+        } else if !tiene_dosis(paciente, 10, 46) {
+            if anios >= 5 {
+                agregar_vacuna(&mut disponibles, 10, 46, "Polio Oral", "DA", Some("Dosis Adicional para grupos de riesgo"));
+            }
         }
 
         disponibles
@@ -338,49 +314,22 @@ impl ReglaVacunacion for ReglaInfluenza {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 6 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                11,
-                47,
-                "Influenza Estacional",
-                "1D",
-                Some("Iniciar a partir de los 6 meses"),
-            );
-        }
-        if meses >= 7 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                11,
-                48,
-                "Influenza Estacional",
-                "2D",
-                Some("Segunda dosis para menores de 9 años que inician esquema"),
-            );
-        }
-        if anios >= 1 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                11,
-                49,
-                "Influenza Estacional",
-                "1REF",
-                Some("Refuerzo anual"),
-            );
-        }
-        if anios >= 1 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                11,
-                50,
-                "Influenza Estacional",
-                "DA",
-                Some("Dosis Adicional para grupos de riesgo"),
-            );
+        // Influenza se recomienda a todas las edades, pero la "1D/2D" es solo para la primera vez en niños
+        if !tiene_dosis(paciente, 11, 47) {
+            if meses >= 6 {
+                agregar_vacuna(&mut disponibles, 11, 47, "Influenza Estacional", "1D", Some("Iniciar a partir de los 6 meses"));
+            }
+        } else if !tiene_dosis(paciente, 11, 48) && anios < 9 {
+            // 2D solo para menores de 9 años que inician esquema
+            if meses >= 7 {
+                agregar_vacuna(&mut disponibles, 11, 48, "Influenza Estacional", "2D", Some("Segunda dosis (niños <9 años)"));
+            }
+        } else {
+            // Para todos los demás casos, es refuerzo anual o DA
+            // Deberíamos calcular si ya se la puso ESTE AÑO, pero por ahora mostramos 1REF siempre si no la tiene (requiere mejor lógica futura)
+            if !tiene_dosis(paciente, 11, 49) && meses >= 6 {
+                agregar_vacuna(&mut disponibles, 11, 49, "Influenza Estacional", "1REF", Some("Refuerzo anual"));
+            }
         }
 
         disponibles
@@ -394,20 +343,13 @@ pub struct ReglaFiebreAmarilla;
 
 impl ReglaVacunacion for ReglaFiebreAmarilla {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
-        if tiene_biologico(paciente, 6) {
-            return vec![];
+        let mut disponibles = vec![];
+        if !tiene_dosis(paciente, 6, 15) {
+            if edad_meses(paciente.fecha_nacimiento) >= 12 {
+                agregar_vacuna(&mut disponibles, 6, 15, "Fiebre Amarilla", "DU", Some("Aplicar a partir de los 12 meses"));
+            }
         }
-        if edad_meses(paciente.fecha_nacimiento) >= 12 {
-            vec![VacunaDisponible {
-                biologico_id: 6,
-                nombre: "Fiebre Amarilla".to_string(),
-                dosis_id: 15,
-                dosis_a_aplicar: "DU".to_string(),
-                advertencia: Some("Aplicar a partir de los 12 meses".to_string()),
-            }]
-        } else {
-            vec![]
-        }
+        disponibles
     }
 }
 
@@ -422,41 +364,26 @@ impl ReglaVacunacion for ReglaSRP {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 12 {
-            push_si_no_aplicada(&mut disponibles, paciente, 7, 13, "SRP", "1D", None);
+        if anios >= 7 {
+            return disponibles; // En mayores sin SRP se usa SR, no SRP.
         }
-        if meses >= 15 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                7,
-                26,
-                "SRP",
-                "2D",
-                Some("Segunda dosis a los 15-23 meses"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                7,
-                14,
-                "SRP",
-                "1REF",
-                Some("Refuerzo al ingreso escolar (4-6 años)"),
-            );
-        }
-        if anios >= 4 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                7,
-                27,
-                "SRP",
-                "DA",
-                Some("Dosis Adicional para grupos de riesgo"),
-            );
+
+        if !tiene_dosis(paciente, 7, 13) {
+            if meses >= 12 {
+                agregar_vacuna(&mut disponibles, 7, 13, "SRP", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 7, 26) {
+            if meses >= 15 {
+                agregar_vacuna(&mut disponibles, 7, 26, "SRP", "2D", Some("Segunda dosis a los 15-23 meses"));
+            }
+        } else if !tiene_dosis(paciente, 7, 14) {
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 7, 14, "SRP", "1REF", Some("Refuerzo al ingreso escolar (4-6 años)"));
+            }
+        } else if !tiene_dosis(paciente, 7, 27) {
+            if anios >= 4 {
+                agregar_vacuna(&mut disponibles, 7, 27, "SRP", "DA", Some("Dosis Adicional para grupos de riesgo"));
+            }
         }
 
         disponibles
@@ -473,89 +400,23 @@ impl ReglaVacunacion for ReglaToxoideTetanoDifterico {
         let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        // Esquema primario: 1D, 2D, 3D (para cualquier edad)
-        if anios >= 0 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                8,
-                28,
-                "Toxoide Tetánico Diftérico (TTD)",
-                "1D",
-                Some("Primera dosis del esquema primario"),
-            );
-        }
-        if anios >= 0 && tiene_dosis(paciente, 8, 28) {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                8,
-                29,
-                "Toxoide Tetánico Diftérico (TTD)",
-                "2D",
-                Some("Segunda dosis a las 4 semanas de la 1D"),
-            );
-        }
-        if anios >= 0 && tiene_dosis(paciente, 8, 29) {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                8,
-                30,
-                "Toxoide Tetánico Diftérico (TTD)",
-                "3D",
-                Some("Tercera dosis a los 6 meses de la 2D"),
-            );
-        }
-
-        // Refuerzos cada 10 años
-        if tiene_dosis(paciente, 8, 30) || tiene_dosis(paciente, 8, 29) {
+        // TTD es general (adultos y niños mayores que no recibieron penta)
+        // Hacemos el esquema secuencial
+        if !tiene_dosis(paciente, 8, 28) {
+            agregar_vacuna(&mut disponibles, 8, 28, "Toxoide Tetánico Diftérico (TTD)", "1D", Some("Primera dosis del esquema primario"));
+        } else if !tiene_dosis(paciente, 8, 29) {
+            agregar_vacuna(&mut disponibles, 8, 29, "Toxoide Tetánico Diftérico (TTD)", "2D", Some("Segunda dosis a las 4 semanas de la 1D"));
+        } else if !tiene_dosis(paciente, 8, 30) {
+            agregar_vacuna(&mut disponibles, 8, 30, "Toxoide Tetánico Diftérico (TTD)", "3D", Some("Tercera dosis a los 6 meses de la 2D"));
+        } else {
+            // Refuerzos
             if anios >= 10 && !tiene_dosis(paciente, 8, 31) {
-                push_si_no_aplicada(
-                    &mut disponibles,
-                    paciente,
-                    8,
-                    31,
-                    "Toxoide Tetánico Diftérico (TTD)",
-                    "1REF",
-                    Some("Primer refuerzo (cada 10 años)"),
-                );
+                agregar_vacuna(&mut disponibles, 8, 31, "Toxoide Tetánico Diftérico (TTD)", "1REF", Some("Primer refuerzo (cada 10 años)"));
+            } else if anios >= 10 && !tiene_dosis(paciente, 8, 32) {
+                agregar_vacuna(&mut disponibles, 8, 32, "Toxoide Tetánico Diftérico (TTD)", "2REF", Some("Segundo refuerzo (cada 10 años)"));
+            } else if anios >= 10 && !tiene_dosis(paciente, 8, 33) {
+                agregar_vacuna(&mut disponibles, 8, 33, "Toxoide Tetánico Diftérico (TTD)", "3REF", Some("Tercer refuerzo (cada 10 años)"));
             }
-            if tiene_dosis(paciente, 8, 31) && !tiene_dosis(paciente, 8, 32) && anios >= 10 {
-                push_si_no_aplicada(
-                    &mut disponibles,
-                    paciente,
-                    8,
-                    32,
-                    "Toxoide Tetánico Diftérico (TTD)",
-                    "2REF",
-                    Some("Segundo refuerzo (cada 10 años)"),
-                );
-            }
-            if tiene_dosis(paciente, 8, 32) && !tiene_dosis(paciente, 8, 33) && anios >= 10 {
-                push_si_no_aplicada(
-                    &mut disponibles,
-                    paciente,
-                    8,
-                    33,
-                    "Toxoide Tetánico Diftérico (TTD)",
-                    "3REF",
-                    Some("Tercer refuerzo (cada 10 años)"),
-                );
-            }
-        }
-
-        // Dosis Adicional (emergencia / embarazadas)
-        if anios >= 0 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                8,
-                34,
-                "Toxoide Tetánico Diftérico (TTD)",
-                "DA",
-                Some("Dosis Adicional para embarazadas o emergencia"),
-            );
         }
 
         disponibles
@@ -573,27 +434,11 @@ impl ReglaVacunacion for ReglaNeumococo23 {
         let mut disponibles = vec![];
 
         if anios >= 65 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                12,
-                51,
-                "Neumococo 23 Valente",
-                "1D",
-                Some("Para adultos de 65 años o más"),
-            );
-        }
-
-        if tiene_dosis(paciente, 12, 51) && anios >= 65 {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                12,
-                52,
-                "Neumococo 23 Valente",
-                "1REF",
-                Some("Refuerzo a los 5 años de la 1D"),
-            );
+            if !tiene_dosis(paciente, 12, 51) {
+                agregar_vacuna(&mut disponibles, 12, 51, "Neumococo 23 Valente", "1D", Some("Para adultos de 65 años o más"));
+            } else if !tiene_dosis(paciente, 12, 52) {
+                agregar_vacuna(&mut disponibles, 12, 52, "Neumococo 23 Valente", "1REF", Some("Refuerzo a los 5 años de la 1D"));
+            }
         }
 
         disponibles
@@ -608,13 +453,21 @@ pub struct ReglaMeningococica;
 impl ReglaVacunacion for ReglaMeningococica {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
         let meses = edad_meses(paciente.fecha_nacimiento);
+        let anios = edad_anios(paciente.fecha_nacimiento);
         let mut disponibles = vec![];
 
-        if meses >= 2 {
-            push_si_no_aplicada(&mut disponibles, paciente, 13, 53, "Meningocócica B-C", "1D", None);
+        if anios >= 2 {
+            return disponibles; // Limite comun infantil
         }
-        if meses >= 4 {
-            push_si_no_aplicada(&mut disponibles, paciente, 13, 54, "Meningocócica B-C", "2D", None);
+
+        if !tiene_dosis(paciente, 13, 53) {
+            if meses >= 2 {
+                agregar_vacuna(&mut disponibles, 13, 53, "Meningocócica B-C", "1D", None);
+            }
+        } else if !tiene_dosis(paciente, 13, 54) {
+            if meses >= 4 {
+                agregar_vacuna(&mut disponibles, 13, 54, "Meningocócica B-C", "2D", None);
+            }
         }
 
         disponibles
@@ -630,39 +483,12 @@ impl ReglaVacunacion for ReglaRabiaPre {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
         let mut disponibles = vec![];
 
-        if !tiene_biologico(paciente, 14) {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                14,
-                55,
-                "Rabia Humana (Pre-exposición)",
-                "1D",
-                Some("Esquema días 0, 7 y 28"),
-            );
-        } else {
-            if !tiene_dosis(paciente, 14, 56) {
-                push_si_no_aplicada(
-                    &mut disponibles,
-                    paciente,
-                    14,
-                    56,
-                    "Rabia Humana (Pre-exposición)",
-                    "2D",
-                    Some("Segunda dosis a los 7 días de la 1D"),
-                );
-            }
-            if !tiene_dosis(paciente, 14, 57) {
-                push_si_no_aplicada(
-                    &mut disponibles,
-                    paciente,
-                    14,
-                    57,
-                    "Rabia Humana (Pre-exposición)",
-                    "3D",
-                    Some("Tercera dosis a los 28 días de la 1D"),
-                );
-            }
+        if !tiene_dosis(paciente, 14, 55) {
+            agregar_vacuna(&mut disponibles, 14, 55, "Rabia Humana (Pre-exposición)", "1D", Some("Esquema días 0, 7 y 28"));
+        } else if !tiene_dosis(paciente, 14, 56) {
+            agregar_vacuna(&mut disponibles, 14, 56, "Rabia Humana (Pre-exposición)", "2D", Some("Segunda dosis a los 7 días de la 1D"));
+        } else if !tiene_dosis(paciente, 14, 57) {
+            agregar_vacuna(&mut disponibles, 14, 57, "Rabia Humana (Pre-exposición)", "3D", Some("Tercera dosis a los 28 días de la 1D"));
         }
 
         disponibles
@@ -678,16 +504,17 @@ impl ReglaVacunacion for ReglaRabiaPost {
     fn evaluar(&self, paciente: &PerfilPaciente) -> Vec<VacunaDisponible> {
         let mut disponibles = vec![];
 
-        for (dosis_id, label) in &[(58, "1D"), (59, "2D"), (60, "3D"), (61, "4D"), (62, "5D"), (63, "6D"), (64, "7D")] {
-            push_si_no_aplicada(
-                &mut disponibles,
-                paciente,
-                15,
-                *dosis_id,
-                "Rabia Humana (Post-exposición)",
-                label,
-                Some("Esquema post-exposición: seguir protocolo"),
-            );
+        // Secuencial iterativo para evitar verbosidad
+        let dosis_post = [
+            (58, "1D"), (59, "2D"), (60, "3D"), (61, "4D"),
+            (62, "5D"), (63, "6D"), (64, "7D")
+        ];
+
+        for (dosis_id, label) in dosis_post.iter() {
+            if !tiene_dosis(paciente, 15, *dosis_id) {
+                agregar_vacuna(&mut disponibles, 15, *dosis_id, "Rabia Humana (Post-exposición)", label, Some("Esquema post-exposición"));
+                break; // Detener en la primera dosis faltante
+            }
         }
 
         disponibles
