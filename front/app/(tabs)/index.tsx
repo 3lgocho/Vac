@@ -34,6 +34,7 @@ export default function Dashboard() {
   const [menuPerfil, setMenuPerfil] = useState(false);
   const [modalPin, setModalPin] = useState(false);
   const [nuevoPin, setNuevoPin] = useState('');
+const [confirmLogout, setConfirmLogout] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
@@ -272,7 +273,7 @@ export default function Dashboard() {
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity onPress={() => { setMenuPerfil(false); Alert.alert('Cerrar Sesión', '¿Estás seguro que deseas cerrar sesión?', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Cerrar sesión', style: 'destructive', onPress: () => logout() }]); }} className="flex-row items-center p-4">
+            <TouchableOpacity onPress={() => { setMenuPerfil(false); setConfirmLogout(true); }} className="flex-row items-center p-4">
               <MaterialIcons name="logout" size={24} color="#ba1a1a" />
               <Text className="text-base ml-4 font-medium text-error">Cerrar sesión</Text>
             </TouchableOpacity>
@@ -326,6 +327,25 @@ export default function Dashboard() {
             </View>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Confirmación cerrar sesión */}
+      <Modal visible={confirmLogout} transparent animationType="fade" onRequestClose={() => setConfirmLogout(false)}>
+        <View className="flex-1 justify-center items-center bg-black/50 px-5">
+          <View className="bg-surface rounded-2xl p-6 items-center w-full max-w-sm">
+            <MaterialIcons name="logout" size={48} color="#ba1a1a" className="mb-4" />
+            <Text className="text-xl font-bold text-on-surface mb-2 text-center">Cerrar Sesión</Text>
+            <Text className="text-on-surface-variant text-center mb-6">¿Estás seguro que deseas cerrar sesión?</Text>
+            <View className="flex-row gap-4 w-full">
+              <TouchableOpacity onPress={() => setConfirmLogout(false)} className="flex-1 py-3 rounded-lg border border-outline-variant items-center">
+                <Text className="text-on-surface font-semibold">Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={async () => { setConfirmLogout(false); await logout(); }} className="flex-1 py-3 rounded-lg items-center bg-error">
+                <Text className="text-white font-semibold">Cerrar sesión</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
