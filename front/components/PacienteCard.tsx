@@ -64,13 +64,13 @@ export const PacienteCard = ({ nombre, apellido, cedula, nextVaccine, onPress }:
                             <Text className="font-label-md text-label-md text-on-surface-variant">Sin vacunas</Text>
                         </View>
                     ) : !tieneProxima ? (
-                        <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-success/20">
+                        <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-success/60">
                             <MaterialIcons name="check-circle" size={24} color="#059669" />
                             <Text className="font-label-md text-label-md text-success">Completada</Text>
                         </View>
                     ) : (
                         <>
-                            <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-secondary-fixed/20">
+                            <View className="flex flex-row items-center gap-1 px-2 py-1 rounded-lg bg-secondary-fixed/30">
                                 <MaterialIcons name="vaccines" size={24} color="#115E59" />
                                 <Text className="font-body-medium text-body-medium text-primary font-medium text-base" numberOfLines={1}>
                                     {nextVaccine!.proxima_vacuna} {nextVaccine!.proxima_dosis}

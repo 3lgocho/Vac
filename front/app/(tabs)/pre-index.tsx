@@ -69,7 +69,7 @@ export default function Dashboard() {
                                 </View>
                             </View>
                             <View className="items-end">
-                                <View className="flex flex-row items-center gap-1 bg-primary-fixed/20 px-2 py-1 rounded-lg">
+                                <View className="flex flex-row items-center gap-1 bg-primary-fixed/60 px-2 py-1 rounded-lg">
                                     <MaterialIcons name="vaccines" size={24} className="text-primary" />
                                     <Text className="font-label-md text-label-md text-primary">Covid-19</Text>
                                 </View>
@@ -90,7 +90,7 @@ export default function Dashboard() {
                                 </View>
                             </View>
                             <View className="items-end">
-                                <View className="flex flex-row items-center gap-1 bg-secondary-fixed/20 px-2 py-1 rounded-lg">
+                                <View className="flex flex-row items-center gap-1 bg-secondary-fixed/60 px-2 py-1 rounded-lg">
                                     <MaterialIcons name="event" size={24} className="text-secondary" />
                                     <Text className="font-label-md text-label-md text-secondary">Agendado</Text>
                                 </View>

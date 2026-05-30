@@ -21,6 +21,7 @@ use crate::modules::{
     registro::handlers::crear_paciente,
     vacunas::handlers::listar_biologicos,
     validador::handlers::evaluar_esquema,
+    personal::handlers::{create_personal, get_personal, soft_delete_personal, update_personal, update_pin},
 };
 
 #[derive(Clone)]
@@ -98,6 +99,9 @@ async fn main() {
                 .route("/validador/esquema", post(evaluar_esquema))
                 .route("/agenda", post(calcular_agenda_handler))
                 .route("/agenda/pacientes-por-fecha", get(pacientes_por_fecha))
+                .route("/personal", get(get_personal).post(create_personal))
+                .route("/personal/{id}", axum::routing::put(update_personal).delete(soft_delete_personal))
+                .route("/personal/{id}/pin", axum::routing::patch(update_pin))
                 .layer(middleware::from_fn(auth_middleware)),
         )
         .layer(cors)

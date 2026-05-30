@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useAuthStore } from '../../store/authStore';
 
 // Componente que imita la estructura de tu HTML
 const TabItem = ({ name, title, focused }: { name: any, title: string, focused: boolean }) => {
@@ -25,6 +26,8 @@ const TabItem = ({ name, title, focused }: { name: any, title: string, focused: 
 };
 
 export default function TabsLayout() {
+    const rol = useAuthStore(state => state.rol);
+
     return (
         <Tabs screenOptions={{
             headerShown: false,
@@ -68,6 +71,15 @@ export default function TabsLayout() {
                 options={{
                     tabBarIcon: ({ focused }) => (
                         <TabItem name="analytics" title="Reportes" focused={focused} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="personal/index"
+                options={{
+                    href: rol === 'coordinador' ? '/personal' : null,
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="badge" title="Personal" focused={focused} />
                     ),
                 }}
             />
