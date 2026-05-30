@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendario } from '../../../components/Calendario';
-import { TopBar } from '../../../components/TopBar';
 import { useAgendaPorFecha } from '../../../hooks/useAgendaPorFecha';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -40,19 +39,6 @@ export default function AgendaScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-background">
-            <TopBar
-                title="Agenda de Vacunación"
-                leftSlot={
-                    <TouchableOpacity className="w-10 h-10 items-center justify-center -ml-2">
-                        <MaterialIcons name="menu" size={24} color="#374151" />
-                    </TouchableOpacity>
-                }
-                rightSlot={
-                    <TouchableOpacity className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high">
-                        <Image source={{ uri: 'https://i.pravatar.cc/150?img=32' }} className="w-full h-full" />
-                    </TouchableOpacity>
-                }
-            />
 
             <View className="flex-1 px-5 pt-4 max-w-2xl mx-auto w-full">
                 <FlatList
