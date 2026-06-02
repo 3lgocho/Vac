@@ -1,6 +1,7 @@
 // front/app/registro/paso1.tsx
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+
 import { useRouter } from 'expo-router';
 
 // Importamos nuestros nuevos componentes limpios
@@ -11,8 +12,8 @@ export default function Paso1() {
     const router = useRouter();
 
     return (
-        <SafeAreaView className="bg-background flex-1">
-            <ScrollView className="flex-1 w-full max-w-3xl mx-auto px-margin-mobile pt-stack-lg">
+        <View className="bg-background flex-1">
+            <ScrollView className="flex-1 w-full max-w-3xl mx-auto px-margin-mobile pt-2">
 
                 <SeccionIdentidad />
 
@@ -28,6 +29,6 @@ export default function Paso1() {
                 </View>
 
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }

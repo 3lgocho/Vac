@@ -2,6 +2,7 @@ import '../global.css';
 import React, { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '../store/authStore';
 
 export default function RootLayout() {
@@ -13,26 +14,32 @@ export default function RootLayout() {
         loadSession();
     }, []);
 
+    let content;
     if (isLoading) {
-        return (
-                <View className="flex-1 items-center justify-center bg-background">
+        content = (
+            <View className="flex-1 items-center justify-center bg-background">
                 <ActivityIndicator size="large" color="#008080" />
             </View>
         );
-    }
-
-    if (!token) {
-        return (
+    } else if (!token) {
+        content = (
             <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="login" />
+            </Stack>
+        );
+    } else {
+        content = (
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="registro" />
             </Stack>
         );
     }
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="registro" />
-        </Stack>
+        <SafeAreaProvider>
+            {content}
+        </SafeAreaProvider>
     );
 }
+

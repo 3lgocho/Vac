@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { TopBar } from '../../../components/TopBar';
 import { apiFetch } from '../../../hooks/useApi';
 
@@ -34,21 +35,23 @@ export default function PacientePerfilScreen() {
     const [perfil, setPerfil] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchPerfil = async () => {
-            try {
-                const res = await apiFetch(`/pacientes/${id}`);
-                if (res.ok) {
-                    setPerfil(await res.json());
+    useFocusEffect(
+        useCallback(() => {
+            const fetchPerfil = async () => {
+                try {
+                    const res = await apiFetch(`/pacientes/${id}`);
+                    if (res.ok) {
+                        setPerfil(await res.json());
+                    }
+                } catch (error) {
+                    console.error('Error fetching perfil:', error);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                console.error('Error fetching perfil:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPerfil();
-    }, [id]);
+            };
+            fetchPerfil();
+        }, [id])
+    );
 
     if (loading) {
         return (
@@ -112,7 +115,8 @@ export default function PacientePerfilScreen() {
                             <TouchableOpacity
                                 key={tab}
                                 onPress={() => setActiveTab(tab)}
-                                className={`flex-1 py-2 items-center justify-center rounded-md ${activeTab === tab ? 'bg-surface-container-lowest shadow-sm border border-outline-variant/50' : ''}`}
+                                className={`flex-1 py-2 items-center justify-center rounded-md ${activeTab === tab ? 'bg-surface-container-lowest border border-outline-variant/50' : ''}`}
+                                style={activeTab === tab ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                             >
                                 <Text className={`font-label-lg font-semibold capitalize ${activeTab === tab ? 'text-primary font-bold' : 'text-on-surface-variant'}`}>
                                     {tab === 'datos' ? 'Datos' : tab}
@@ -136,7 +140,7 @@ export default function PacientePerfilScreen() {
                                     {historial.map((vacuna: any) => (
                                         <View key={vacuna.id} className="relative pl-6 mb-4">
                                             <View className="absolute -left-[11px] top-1 w-5 h-5 bg-primary rounded-full border-4 border-surface" />
-                                            <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4 shadow-sm">
+                                            <View className="bg-surface-container-lowest rounded-xl border border-surface-container-highest p-4" style={{ elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 }}>
                                                 <View className="flex-row justify-between items-start mb-2">
                                                     <Text className="font-label-lg text-label-lg text-on-surface">{vacuna.biologico_nombre}</Text>
                                                     <View className="bg-primary px-2 py-1 rounded">
@@ -248,7 +252,8 @@ export default function PacientePerfilScreen() {
             {activeTab === 'historial' && (
                 <TouchableOpacity
                     onPress={() => router.push(`/pacientes/vacunar/${id}` as any)}
-                    className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center shadow-lg elevation-5"
+                    className="absolute bottom-6 right-6 w-14 h-14 bg-primary rounded-full items-center justify-center"
+                    style={{ elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 }}
                 >
                     <MaterialIcons name="add" size={30} color="#FFFFFF" />
                 </TouchableOpacity>

@@ -48,7 +48,8 @@ export default function SeccionBiologica() {
                     <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Femenino')}
-                            className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Femenino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
+                            className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Femenino' ? 'bg-surface-container-lowest' : ''}`}
+                            style={genero === 'Femenino' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}>
                             <Text className={`font-label-lg font-semibold text-lg ${genero === 'Femenino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                 Femenino
                             </Text>
@@ -56,7 +57,8 @@ export default function SeccionBiologica() {
 
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Masculino')}
-                            className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Masculino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}>
+                            className={`flex-1 items-center justify-center h-touch-target-min rounded-md ${genero === 'Masculino' ? 'bg-surface-container-lowest' : ''}`}
+                            style={genero === 'Masculino' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}>
                             <Text className={`font-label-lg font-semibold text-lg ${genero === 'Masculino' ? 'text-primary' : 'text-on-surface-variant'}`}>
                                 Masculino
                             </Text>

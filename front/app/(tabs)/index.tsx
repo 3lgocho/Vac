@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, FlatList, ActivityIndicator, Modal, ScrollView, Animated, Keyboard, LayoutAnimation, Platform, UIManager, Alert, KeyboardAvoidingView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, Image,  FlatList, ActivityIndicator, Modal, ScrollView, Animated, Keyboard, LayoutAnimation, Platform, UIManager, Alert, KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useBusquedaPacientes, FiltroEstado } from '../../hooks/useBusquedaPacientes';
 import { useNextVaccines } from '../../hooks/useNextVaccines';
@@ -55,7 +57,7 @@ const [confirmLogout, setConfirmLogout] = useState(false);
     Animated.timing(greetingAnim, {
       toValue: isSearching || isKeyboardVisible ? 0 : 1,
       duration: 200,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [isSearching, isKeyboardVisible]);
 
@@ -65,6 +67,23 @@ const [confirmLogout, setConfirmLogout] = useState(false);
     }, 500);
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, estadoActivo, fetchPacientes]);
+
+  const fetchRef = useRef(fetchPacientes);
+  const searchRef = useRef(searchTerm);
+  const estadoRef = useRef(estadoActivo);
+
+  useEffect(() => {
+    fetchRef.current = fetchPacientes;
+    searchRef.current = searchTerm;
+    estadoRef.current = estadoActivo;
+  }, [fetchPacientes, searchTerm, estadoActivo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Refresh list when returning to this tab
+      fetchRef.current(searchRef.current, estadoRef.current, 1);
+    }, [])
+  );
 
   const clearSearch = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator,  TextInput, Alert, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { TopBar } from '../../../../components/TopBar';
@@ -236,13 +237,15 @@ export default function EditarPacienteScreen() {
                             <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                                 <TouchableOpacity
                                     onPress={() => updateField('genero', 'Femenino')}
-                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Femenino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
+                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Femenino' ? 'bg-surface-container-lowest' : ''}`}
+                                    style={editForm.genero === 'Femenino' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                                 >
                                     <Text className={editForm.genero === 'Femenino' ? 'text-primary font-label-lg font-semibold text-md' : 'text-on-surface-variant font-label-lg font-semibold text-md'}>Femenino</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={() => updateField('genero', 'Masculino')}
-                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Masculino' ? 'bg-surface-container-lowest shadow-sm' : ''}`}
+                                    className={`flex-1 items-center justify-center py-2 rounded-md ${editForm.genero === 'Masculino' ? 'bg-surface-container-lowest' : ''}`}
+                                    style={editForm.genero === 'Masculino' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                                 >
                                     <Text className={editForm.genero === 'Masculino' ? 'text-primary font-label-lg font-semibold text-md' : 'text-on-surface-variant font-label-lg font-semibold text-md'}>Masculino</Text>
                                 </TouchableOpacity>

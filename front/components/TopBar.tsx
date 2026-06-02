@@ -12,7 +12,7 @@ interface TopBarProps {
 export function TopBar({ title, onBack, leftSlot, rightSlot }: TopBarProps) {
   return (
     <View className="bg-surface-container-lowest border-b border-surface-container-highest flex-row items-center justify-between px-4 h-14">
-      <View className="w-12 items-start">
+      <View className="w-auto min-w-[60px] items-start">
         {leftSlot || (onBack && (
           <TouchableOpacity onPress={onBack} className="w-10 h-10 items-center justify-center -ml-2">
             <MaterialIcons name="arrow-back" size={24} color="#374151" />
@@ -22,7 +22,7 @@ export function TopBar({ title, onBack, leftSlot, rightSlot }: TopBarProps) {
       <Text className="text-primary font-semibold text-base tracking-tight flex-1 text-center" numberOfLines={1}>
         {title}
       </Text>
-      <View className="w-12 items-end">
+      <View className="w-auto min-w-[60px] items-end">
         {rightSlot}
       </View>
     </View>

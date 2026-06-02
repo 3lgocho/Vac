@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView,  ActivityIndicator } from 'react-native';
+
 import { useRouter } from 'expo-router';
 import { useRegistroStore } from '../../store/registroStore';
 import { useBiologicos } from '../../hooks/useBiologicos';
@@ -26,15 +27,15 @@ export default function Paso3() {
 
     if (loading) {
         return (
-            <SafeAreaView className="bg-background flex-1 justify-center items-center">
+            <View className="bg-background flex-1 justify-center items-center">
                 <ActivityIndicator size="large" color="#008080" />
                 <Text className="mt-4 text-on-surface-variant font-body-md">Cargando catálogo de biológicos...</Text>
-            </SafeAreaView>
+            </View>
         );
     }
 
     return (
-        <SafeAreaView className="bg-background flex-1">
+        <View className="bg-background flex-1">
             <ScrollView className="flex-1 w-full max-w-3xl mx-auto px-margin-mobile mt-stack-lg">
                 <View className="space-y-stack-lg pb-stack-lg gap-6">
                     <View className="pb-stack-xl">
@@ -70,6 +71,6 @@ export default function Paso3() {
                     onSuccessAccept={handleCerrarModalExito}
                 />
             </ScrollView>
-        </SafeAreaView>
+        </View>
     );
 }
