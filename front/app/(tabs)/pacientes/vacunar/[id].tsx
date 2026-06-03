@@ -63,7 +63,9 @@ export default function VacunarPaciente() {
 
         const payload = {
           fecha_nacimiento: p.fecha_nacimiento,
-          grupos_especiales: p.grupos_especiales || [],
+          grupos_especiales: typeof p.grupos_especiales === 'string'
+            ? JSON.parse(p.grupos_especiales)
+            : (p.grupos_especiales || []),
           vacunas_aplicadas: historial.map((v: any) => ({
             biologico_id: v.biologico_id,
             dosis_id: v.dosis_id,
