@@ -43,9 +43,6 @@ pub fn calcular_estado_paciente(
     let mut proximas_candidatas: Vec<&super::models::DosisProgramada> = vec![];
 
     for (bio_id, dosis_programadas) in &por_bio {
-        if !bio_con_dosis.contains(bio_id) {
-            continue;
-        }
 
         let mut sorted = dosis_programadas.clone();
         sorted.sort_by_key(|d| d.dosis_id);
@@ -59,7 +56,11 @@ pub fn calcular_estado_paciente(
     }
 
     let hoy_local = hoy();
-    proximas_candidatas.sort_by_key(|d| (d.fecha_sugerida - hoy_local).abs());
+    proximas_candidatas.sort_by_key(|d| (
+        d.orden_aplicacion == 1,
+        (d.fecha_sugerida - hoy_local).abs(),
+        d.biologico_id
+    ));
     let proxima = proximas_candidatas.first().map(|d| ProximaVacunaInfo {
         nombre: d.nombre.clone(),
         dosis: d.dosis_a_aplicar.clone(),
@@ -70,7 +71,7 @@ pub fn calcular_estado_paciente(
         "Atrasada".to_string()
     } else if proximas_candidatas.iter().any(|d| d.estado == "Para Hoy") {
         "Para Hoy".to_string()
-    } else if paciente.vacunas_aplicadas.is_empty() {
+    } else if paciente.vacunas_aplicadas.is_empty() && proximas_candidatas.is_empty() {
         "Sin vacunas".to_string()
     } else {
         "Al día".to_string()

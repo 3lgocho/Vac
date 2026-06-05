@@ -95,4 +95,5 @@ pub struct HistorialConPacienteRow {
     pub dosis_id: i32,
     pub dosis_nombre: String,
     pub fecha_aplicacion: NaiveDate,
+    pub orden_aplicacion: i32,
 }

@@ -5,10 +5,10 @@ use super::reglas::obtener_esquema_disponible;
 use crate::AppState;
 
 pub async fn evaluar_esquema(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(payload): Json<PerfilPaciente>,
 ) -> impl IntoResponse {
-    let esquema = obtener_esquema_disponible(&payload);
+    let esquema = obtener_esquema_disponible(&state.db, &payload).await.unwrap_or_default();
     eprintln!(
         "🔍 VALIDADOR: fecha_nac={:?}, grupos={:?}, vacunas_aplicadas={:?}, resultado={} items",
         payload.fecha_nacimiento,

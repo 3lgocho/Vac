@@ -7,6 +7,7 @@ use crate::modules::registro::models::GrupoEspecial;
 pub struct VacunaAplicadaInput {
     pub biologico_id: i32,
     pub dosis_id: i32,
+    pub orden_aplicacion: i32,
     #[serde(default)]
     pub fecha_aplicacion: Option<NaiveDate>,
 }
@@ -25,4 +26,8 @@ pub struct VacunaDisponible {
     pub dosis_id: i32,
     pub dosis_a_aplicar: String,
     pub advertencia: Option<String>,
+    pub orden_aplicacion: i32,
+    pub edad_recomendada_meses: i32,
+    pub intervalo_recomendado_meses: i32,
+    pub intervalo_minimo_meses: i32,
 }

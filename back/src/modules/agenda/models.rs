@@ -10,4 +10,5 @@ pub struct DosisProgramada {
     pub fecha_sugerida: NaiveDate,
     pub estado: String,
     pub advertencia: Option<String>,
+    pub orden_aplicacion: i32,
 }

@@ -277,7 +277,8 @@ pub async fn batch_next_vaccines(
 
     let historial = sqlx::query_as::<_, HistorialConPacienteRow>(
         r#"SELECT pv.paciente_id, pv.biologico_id, b.nombre as biologico_nombre,
-                  pv.dosis_id, d.nombre_dosis as dosis_nombre, pv.fecha_aplicacion
+                  pv.dosis_id, d.nombre_dosis as dosis_nombre, pv.fecha_aplicacion,
+                  d.orden_aplicacion
            FROM paciente_vacunas pv
            JOIN catalogo_biologicos b ON pv.biologico_id = b.id
            JOIN esquema_dosis d ON pv.dosis_id = d.id
@@ -317,12 +318,13 @@ pub async fn batch_next_vaccines(
                 .map(|v| VacunaAplicadaInput {
                     biologico_id: v.biologico_id,
                     dosis_id: v.dosis_id,
+                    orden_aplicacion: v.orden_aplicacion,
                     fecha_aplicacion: Some(v.fecha_aplicacion),
                 })
                 .collect(),
         };
 
-        let faltantes = obtener_esquema_disponible(&perfil);
+        let faltantes = obtener_esquema_disponible(&state.db, &perfil).await.unwrap_or_default();
         let estado_paciente = calcular_estado_paciente(&perfil, &faltantes);
 
         results.push(NextVaccineItem {
