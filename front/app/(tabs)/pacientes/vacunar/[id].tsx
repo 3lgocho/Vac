@@ -69,6 +69,7 @@ export default function VacunarPaciente() {
           vacunas_aplicadas: historial.map((v: any) => ({
             biologico_id: v.biologico_id,
             dosis_id: v.dosis_id,
+            fecha_aplicacion: v.fecha_aplicacion,
           })),
         };
         console.log('🔍 Payload validador:', JSON.stringify(payload));

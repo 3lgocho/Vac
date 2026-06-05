@@ -1,6 +1,5 @@
 use super::models::*;
 use crate::AppState;
-use crate::modules::agenda::calculador::calcular_agenda;
 use crate::modules::registro::models::GrupoEspecial;
 use crate::modules::vacunas::models::VacunaAplicada;
 use crate::modules::validador::models::{PerfilPaciente, VacunaAplicadaInput};

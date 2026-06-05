@@ -223,7 +223,7 @@ pub fn calcular_agenda(
     faltantes
         .iter()
         .map(|d| {
-            let mut fecha = calcular_fecha(paciente, d);
+            let fecha = calcular_fecha(paciente, d);
             let estado = determinar_estado(fecha);
 
             DosisProgramada {

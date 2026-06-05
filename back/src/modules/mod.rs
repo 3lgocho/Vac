@@ -5,3 +5,4 @@ pub mod registro;
 pub mod vacunas;
 pub mod validador;
 pub mod personal;
+pub mod notificaciones;
