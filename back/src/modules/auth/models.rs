@@ -17,6 +17,7 @@ pub struct AuthResponse {
 pub struct Claims {
     pub sub: i32,
     pub cedula: String,
+    pub nombre: String,
     pub rol: String,
     pub exp: usize,
 }

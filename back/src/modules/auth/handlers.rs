@@ -49,6 +49,7 @@ pub async fn login(
     let claims = Claims {
         sub: id,
         cedula: payload.cedula,
+        nombre: nombre.clone(),
         rol: rol.clone(),
         exp,
     };

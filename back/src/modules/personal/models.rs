@@ -11,7 +11,7 @@ pub struct PersonalSalud {
     pub creado_en: Option<NaiveDateTime>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CreatePersonalRequest {
     pub cedula: String,
     pub nombre_completo: String,
@@ -19,7 +19,7 @@ pub struct CreatePersonalRequest {
     pub pin: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct UpdatePersonalRequest {
     pub cedula: String,
     pub nombre_completo: String,

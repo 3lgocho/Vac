@@ -28,7 +28,7 @@ pub struct PacientePerfilPayload {
     pub alergias: Vec<Alergia>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct UpdatePacientePayload {
     pub cedula: String,
     pub nombre: String,

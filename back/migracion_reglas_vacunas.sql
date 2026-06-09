@@ -7,7 +7,8 @@ ADD COLUMN IF NOT EXISTS edad_maxima_meses INTEGER,
 ADD COLUMN IF NOT EXISTS edad_recomendada_meses INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS intervalo_recomendado_meses INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS intervalo_minimo_meses INTEGER DEFAULT 0,
-ADD COLUMN IF NOT EXISTS es_refuerzo BOOLEAN DEFAULT FALSE;
+ADD COLUMN IF NOT EXISTS es_refuerzo BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS es_anual BOOLEAN DEFAULT FALSE;
 
 -- 2. Limpiar esquemas anteriores para recrearlos
 DELETE FROM esquema_dosis;
