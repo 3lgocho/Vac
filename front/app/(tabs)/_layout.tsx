@@ -83,6 +83,14 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+            <Tabs.Screen
+                name="logs/index"
+                options={{
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="history" title="Historial" focused={focused} />
+                    ),
+                }}
+            />
         </Tabs>
     );
 }

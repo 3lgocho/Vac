@@ -9,6 +9,7 @@ use serde_json::json;
 
 use crate::{AppState, modules::auth::models::Claims};
 use super::models::{CreatePersonalRequest, PersonalSalud, UpdatePersonalRequest, UpdatePinRequest};
+use crate::modules::logs::handlers::log_action;
 
 fn check_coordinador(claims: &Claims) -> Result<(), (StatusCode, Json<serde_json::Value>)> {
     if claims.rol != "coordinador" {
@@ -75,10 +76,27 @@ pub async fn create_personal(
     .await;
 
     match result {
-        Ok(row) => (
-            StatusCode::CREATED,
-            Json(json!({"msg": "Usuario creado", "id": row.id})),
-        ).into_response(),
+        Ok(row) => {
+            let detalles = format!(
+                "{} registró a un nuevo {} con cédula {}",
+                claims.nombre, payload.rol, payload.cedula
+            );
+            log_action(
+                &state.db,
+                claims.sub,
+                "REGISTRO",
+                "PERSONAL",
+                Some(row.id),
+                &detalles,
+                None,
+                Some(serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null)),
+            ).await;
+
+            (
+                StatusCode::CREATED,
+                Json(json!({"msg": "Usuario creado", "id": row.id})),
+            ).into_response()
+        },
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({"error": format!("Error al crear usuario: {}", e)})),
@@ -107,10 +125,27 @@ pub async fn update_personal(
     .await;
 
     match result {
-        Ok(res) if res.rows_affected() > 0 => (
-            StatusCode::OK,
-            Json(json!({"msg": "Usuario actualizado"})),
-        ).into_response(),
+        Ok(res) if res.rows_affected() > 0 => {
+            let detalles = format!(
+                "{} actualizó la información del personal con ID {} (Nuevos datos: {} - {})",
+                claims.nombre, id, payload.nombre_completo, payload.rol
+            );
+            log_action(
+                &state.db,
+                claims.sub,
+                "EDICION",
+                "PERSONAL",
+                Some(id),
+                &detalles,
+                None,
+                Some(serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null)),
+            ).await;
+
+            (
+                StatusCode::OK,
+                Json(json!({"msg": "Usuario actualizado"})),
+            ).into_response()
+        },
         Ok(_) => (
             StatusCode::NOT_FOUND,
             Json(json!({"error": "Usuario no encontrado"})),
@@ -183,10 +218,27 @@ pub async fn soft_delete_personal(
     .await;
 
     match result {
-        Ok(res) if res.rows_affected() > 0 => (
-            StatusCode::OK,
-            Json(json!({"msg": "Usuario eliminado (soft delete)"})),
-        ).into_response(),
+        Ok(res) if res.rows_affected() > 0 => {
+            let detalles = format!(
+                "{} inhabilitó al personal con ID {}",
+                claims.nombre, id
+            );
+            log_action(
+                &state.db,
+                claims.sub,
+                "ELIMINACION",
+                "PERSONAL",
+                Some(id),
+                &detalles,
+                None,
+                None,
+            ).await;
+
+            (
+                StatusCode::OK,
+                Json(json!({"msg": "Usuario eliminado (soft delete)"})),
+            ).into_response()
+        },
         Ok(_) => (
             StatusCode::NOT_FOUND,
             Json(json!({"error": "Usuario no encontrado"})),

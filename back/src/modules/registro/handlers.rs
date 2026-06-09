@@ -1,9 +1,12 @@
 use super::models::CreatePacientePayload;
 use crate::AppState;
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use crate::modules::auth::models::Claims;
+use crate::modules::logs::handlers::log_action;
+use axum::{Json, extract::{Extension, State}, http::StatusCode, response::IntoResponse};
 
 pub async fn crear_paciente(
     State(state): State<AppState>,
+    Extension(claims): Extension<Claims>,
     Json(payload): Json<CreatePacientePayload>,
 ) -> impl IntoResponse {
     println!("🔍 Auditando Payload recibido:\n{:#?}", payload);
@@ -118,6 +121,23 @@ pub async fn crear_paciente(
             "Error confirmando los datos".to_string(),
         );
     }
+
+    let detalles = format!(
+        "{} registró a {} {} cédula {}-{}",
+        claims.nombre, payload.nombre, payload.apellido, payload.nacionalidad, payload.cedula
+    );
+
+    log_action(
+        &state.db,
+        claims.sub,
+        "REGISTRO",
+        "PACIENTE",
+        Some(paciente_id),
+        &detalles,
+        None,
+        None,
+    )
+    .await;
 
     (
         StatusCode::CREATED,
