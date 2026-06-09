@@ -43,6 +43,14 @@ pub async fn obtener_esquema_disponible(
     .fetch_all(pool)
     .await?;
 
+    let mut max_orden_por_bio = std::collections::HashMap::new();
+    for v in &paciente.vacunas_aplicadas {
+        let current_max = max_orden_por_bio.entry(v.biologico_id).or_insert(0);
+        if v.orden_aplicacion > *current_max {
+            *current_max = v.orden_aplicacion;
+        }
+    }
+
     let mut disponibles = vec![];
     let mut current_bio = -1;
 
@@ -51,11 +59,8 @@ pub async fn obtener_esquema_disponible(
             continue;
         }
 
-        let tiene_dosis = paciente.vacunas_aplicadas.iter().any(|v| 
-            v.biologico_id == regla.biologico_id && v.dosis_id == regla.dosis_id
-        );
-
-        if tiene_dosis {
+        let max_orden = max_orden_por_bio.get(&regla.biologico_id).copied().unwrap_or(0);
+        if regla.orden_aplicacion <= max_orden {
             continue;
         }
 

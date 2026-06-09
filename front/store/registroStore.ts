@@ -6,6 +6,7 @@ export interface VacunaSeleccionada {
     nombre: string;
     dosis_id: number;
     nombre_dosis: string;
+    orden_aplicacion: number;
 }
 
 export interface AlergiaSeleccionada {

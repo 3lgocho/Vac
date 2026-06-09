@@ -32,6 +32,7 @@ export function useValidacion() {
             vacunas_aplicadas: vacunasSeleccionadas.map((v) => ({
                 biologico_id: v.biologico_id,
                 dosis_id: v.dosis_id,
+                orden_aplicacion: v.orden_aplicacion,
                 fecha_aplicacion: null, // Desde el registro global no tienen fecha aún
             })),
         };

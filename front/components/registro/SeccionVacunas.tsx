@@ -57,6 +57,7 @@ export default function SeccionVacunas({ biologicos, loading }: Props) {
             nombre: activeBiologicoFull.nombre,
             dosis_id: activeDosis.id,
             nombre_dosis: activeDosis.nombre_dosis,
+            orden_aplicacion: activeDosis.orden_aplicacion,
         });
 
         setSelectedBioId(null);

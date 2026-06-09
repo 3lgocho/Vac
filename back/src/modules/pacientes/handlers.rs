@@ -6,10 +6,12 @@ use crate::modules::validador::models::{PerfilPaciente, VacunaAplicadaInput};
 use crate::modules::validador::reglas::obtener_esquema_disponible;
 use axum::{
     Json,
-    extract::{Path, Query, State},
+    extract::{Extension, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
 };
+use crate::modules::auth::models::Claims;
+use crate::modules::logs::handlers::log_action;
 use chrono::{Local, NaiveDate};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -108,7 +110,7 @@ pub async fn get_paciente_perfil(
 
     let query_vacunas = r#"
         SELECT pv.id, pv.biologico_id, b.nombre as biologico_nombre, pv.dosis_id, d.nombre_dosis as dosis_nombre,
-               DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador 
+               d.orden_aplicacion, DATE(pv.fecha_aplicacion) as fecha_aplicacion, 'N/A' as lote, 'N/A' as vacunador 
         FROM paciente_vacunas pv
         JOIN catalogo_biologicos b ON pv.biologico_id = b.id
         JOIN esquema_dosis d ON pv.dosis_id = d.id
@@ -143,6 +145,7 @@ pub async fn get_paciente_perfil(
 
 pub async fn update_paciente(
     State(state): State<AppState>,
+    Extension(claims): Extension<Claims>,
     Path(id): Path<i32>,
     Json(payload): Json<UpdatePacientePayload>,
 ) -> Result<(StatusCode, &'static str), (StatusCode, String)> {
@@ -200,10 +203,27 @@ pub async fn update_paciente(
     tx.commit().await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
 
+    let detalles = format!(
+        "{} actualizó la información del paciente {} {} (Cédula: {})",
+        claims.nombre, payload.nombre, payload.apellido, payload.cedula
+    );
+    
+    log_action(
+        &state.db,
+        claims.sub,
+        "EDICION",
+        "PACIENTE",
+        Some(id),
+        &detalles,
+        None, // Podríamos usar serde_json::to_value(&old_data) aquí en el futuro
+        Some(serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null)),
+    )
+    .await;
+
     Ok((StatusCode::OK, "Paciente actualizado"))
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, serde::Serialize)]
 pub struct AplicarVacunaPayload {
     pub biologico_id: i32,
     pub dosis_id: i32,
@@ -211,6 +231,7 @@ pub struct AplicarVacunaPayload {
 
 pub async fn aplicar_vacunas(
     State(state): State<AppState>,
+    Extension(claims): Extension<Claims>,
     Path(id): Path<i32>,
     Json(payload): Json<Vec<AplicarVacunaPayload>>,
 ) -> Result<(StatusCode, &'static str), (StatusCode, String)> {
@@ -241,6 +262,23 @@ pub async fn aplicar_vacunas(
 
     tx.commit().await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al confirmar transacción: {e}")))?;
+
+    let detalles = format!(
+        "{} registró la aplicación de {} vacuna(s) al paciente con ID {}",
+        claims.nombre, payload.len(), id
+    );
+
+    log_action(
+        &state.db,
+        claims.sub,
+        "VACUNACION",
+        "PACIENTE",
+        Some(id),
+        &detalles,
+        None,
+        Some(serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null)),
+    )
+    .await;
 
     Ok((StatusCode::CREATED, "Vacunas aplicadas exitosamente"))
 }

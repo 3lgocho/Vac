@@ -24,6 +24,7 @@ pub struct VacunaAplicada {
     pub biologico_nombre: String,
     pub dosis_id: i32,
     pub dosis_nombre: String,
+    pub orden_aplicacion: i32,
     pub fecha_aplicacion: NaiveDate,
     pub lote: Option<String>,
     pub vacunador: Option<String>,
