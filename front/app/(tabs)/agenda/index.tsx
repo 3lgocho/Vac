@@ -84,27 +84,35 @@ export default function AgendaScreen() {
 
                     renderItem={({ item }) => {
                         const tema = estadoTema[item.estado] || estadoTema.Futura;
+                        const iniciales = `${item.paciente_nombre?.[0] || ''}${item.paciente_apellido?.[0] || ''}`.toUpperCase();
+                        
                         return (
-                            <TouchableOpacity className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 relative overflow-hidden shadow-sm active:opacity-70 mb-2">
-                                <View className={`absolute left-0 top-0 bottom-0 w-1.5 ${tema.bgSide}`} />
-                                <View className="pl-2 gap-2">
-                                    <View className="flex-row justify-between items-start">
-                                        <View className="flex-row items-center gap-1">
-                                            <MaterialIcons name="person" size={16} color="#3e4949" />
-                                            <Text className="text-on-surface-variant font-label-md text-xs font-medium">{item.cedula}</Text>
+                            <TouchableOpacity className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 relative overflow-hidden mb-3 flex flex-col active:opacity-70">
+                                <View className={`absolute left-0 top-0 bottom-0 w-1 ${tema.bgSide}`} />
+                                
+                                <View className="flex flex-row items-center justify-between w-full">
+                                    <View className="flex flex-row items-center gap-3 flex-1">
+                                        <View className="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center">
+                                            <Text className="text-on-secondary-fixed font-label-lg text-label-lg">{iniciales}</Text>
                                         </View>
-                                        <View className={`${tema.bgStatus} px-2 py-0.5 rounded`}>
-                                            <Text className={`${tema.textStatus} font-label-md uppercase text-[10px] tracking-wider font-semibold`}>{item.estado}</Text>
+                                        <View className="flex-1">
+                                            <Text className="font-label-lg text-label-lg text-on-surface font-bold text-base" numberOfLines={1}>
+                                                {item.paciente_nombre} {item.paciente_apellido}
+                                            </Text>
+                                            <Text className="font-body-md text-body-md text-on-surface-variant text-sm">{item.cedula}</Text>
                                         </View>
                                     </View>
-                                    <View>
-                                        <Text className="font-label-lg font-semibold text-on-surface mb-1 text-base">
-                                            {item.paciente_nombre} {item.paciente_apellido}
-                                        </Text>
-                                        <View className="flex-row items-center gap-2">
-                                            <MaterialIcons name={tema.icono as any} size={18} color="#3e4949" />
-                                            <Text className="font-body-md text-sm text-on-surface-variant flex-1">{item.vacuna} — {item.dosis}</Text>
+
+                                    <View className="items-end ml-2 max-w-[160px]">
+                                        <View className={`flex flex-row items-center gap-1 px-2 py-1 rounded-lg ${tema.bgStatus}`}>
+                                            <MaterialIcons name={tema.icono as any} size={18} color={tema.textStatus === 'text-error' ? '#DC2626' : tema.textStatus === 'text-primary' ? '#005b52' : '#3e4949'} />
+                                            <Text className={`font-body-medium text-body-medium font-medium text-sm ${tema.textStatus}`} numberOfLines={1}>
+                                                {item.vacuna} {item.dosis}
+                                            </Text>
                                         </View>
+                                        <Text className={`font-label-md text-[10px] tracking-wider uppercase font-semibold mt-1 ${tema.textStatus}`}>
+                                            {item.estado}
+                                        </Text>
                                     </View>
                                 </View>
                             </TouchableOpacity>

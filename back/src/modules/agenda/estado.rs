@@ -36,7 +36,9 @@ pub fn calcular_estado_paciente(
     let mut por_bio: std::collections::HashMap<i32, Vec<&super::models::DosisProgramada>> =
         std::collections::HashMap::new();
     for d in &agenda {
-        por_bio.entry(d.biologico_id).or_default().push(d);
+        if bio_con_dosis.contains(&d.biologico_id) {
+            por_bio.entry(d.biologico_id).or_default().push(d);
+        }
     }
 
     let mut atrasadas: Vec<String> = vec![];

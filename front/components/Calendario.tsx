@@ -117,12 +117,9 @@ export function Calendario({ vistaActual, setVistaActual, fechaSeleccionada, set
                                     <Text className="font-label-md text-xs text-outline">{diasSemanaNombres[index]}</Text>
                                     <TouchableOpacity
                                         onPress={() => setFechaSeleccionada(dia.toDate())}
-                                        className={`h-10 w-10 flex items-center justify-center rounded-full ${isSelected ? 'bg-primary shadow-sm' : ''
-                                            }`}
+                                        className={`h-10 w-10 flex items-center justify-center rounded-full ${isHoy ? 'bg-primary shadow-sm' : isSelected ? 'bg-primary/20' : ''}`}
                                     >
-                                        <Text className={`font-label-lg ${isSelected ? 'text-on-primary font-bold' :
-                                            isHoy ? 'text-primary font-bold' : 'text-on-surface'
-                                            }`}>
+                                        <Text className={`font-label-lg ${isHoy ? 'text-on-primary font-bold' : isSelected ? 'text-primary font-bold' : 'text-on-surface'}`}>
                                             {dia.format('D')}
                                         </Text>
                                     </TouchableOpacity>
@@ -159,12 +156,8 @@ export function Calendario({ vistaActual, setVistaActual, fechaSeleccionada, set
                                     onPress={() => setFechaSeleccionada(dia.toDate())}
                                     className="w-[14.28%] p-0.5 active:opacity-70"
                                 >
-                                    <View className={`h-10 w-full flex items-center justify-center rounded-full relative ${isSelected ? 'bg-primary shadow-sm' : ''
-                                        }`}>
-                                        <Text className={`font-body-md text-base ${isSelected ? 'text-on-primary font-bold' :
-                                            isHoy ? 'text-primary font-bold' :
-                                                !isMesActual ? 'text-outline-variant' : 'text-on-surface'
-                                            }`}>
+                                    <View className={`h-10 w-full flex items-center justify-center rounded-full relative ${isHoy ? 'bg-primary shadow-sm' : isSelected ? 'bg-primary/20' : ''}`}>
+                                        <Text className={`font-body-md text-base ${isHoy ? 'text-on-primary font-bold' : isSelected ? 'text-primary font-bold' : !isMesActual ? 'text-outline-variant' : 'text-on-surface'}`}>
                                             {dia.format('D')}
                                         </Text>
                                     </View>

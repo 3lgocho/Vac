@@ -13,14 +13,9 @@ fn meses(n: i64) -> Duration {
 
 fn calcular_fecha(paciente: &PerfilPaciente, dosis: &VacunaDisponible) -> NaiveDate {
     let nac = paciente.fecha_nacimiento;
-    let hoy_local = hoy();
 
     if dosis.orden_aplicacion == 1 {
-        let recomendada = nac + meses(dosis.edad_recomendada_meses as i64);
-        if recomendada < hoy_local {
-            return hoy_local;
-        }
-        return recomendada;
+        return nac + meses(dosis.edad_recomendada_meses as i64);
     }
 
     let prev_dosis = paciente
@@ -34,7 +29,7 @@ fn calcular_fecha(paciente: &PerfilPaciente, dosis: &VacunaDisponible) -> NaiveD
         }
     }
 
-    hoy_local
+    nac + meses(dosis.edad_recomendada_meses as i64)
 }
 
 fn determinar_estado(fecha: NaiveDate) -> String {
