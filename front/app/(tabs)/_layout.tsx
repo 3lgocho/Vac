@@ -91,6 +91,15 @@ export default function TabsLayout() {
                     ),
                 }}
             />
+            <Tabs.Screen
+                name="catalogo/index"
+                options={{
+                    href: rol === 'coordinador' ? '/catalogo' : null,
+                    tabBarIcon: ({ focused }) => (
+                        <TabItem name="medical-services" title="Catálogo" focused={focused} />
+                    ),
+                }}
+            />
         </Tabs>
     );
 }

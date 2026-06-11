@@ -19,7 +19,7 @@ use crate::modules::{
         get_pacientes_search, update_paciente,
     },
     registro::handlers::crear_paciente,
-    vacunas::handlers::listar_biologicos,
+    vacunas::handlers::{listar_biologicos, crear_biologico_completo},
     validador::handlers::evaluar_esquema,
     personal::handlers::{create_personal, get_personal, soft_delete_personal, update_personal, update_pin},
     notificaciones::handlers::enviar_notificacion_vacunas,
@@ -95,7 +95,7 @@ async fn main() {
                     "/pacientes/{id}",
                     get(get_paciente_perfil).put(update_paciente),
                 )
-                .route("/biologicos", get(listar_biologicos))
+                .route("/biologicos", get(listar_biologicos).post(crear_biologico_completo))
                 .route("/pacientes/{id}/vacunas", post(aplicar_vacunas))
                 .route("/pacientes/next-vaccines", post(batch_next_vaccines))
                 .route("/validador/esquema", post(evaluar_esquema))

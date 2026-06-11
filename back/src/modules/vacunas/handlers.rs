@@ -1,4 +1,4 @@
-use super::models::{Biologico, CreateVacunaAplicadaDto};
+use super::models::{Biologico, CreateVacunaAplicadaDto, CreateBiologicoCompletoDto};
 use crate::AppState;
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
@@ -82,4 +82,71 @@ pub async fn registrar_vacuna_aplicada(
             (StatusCode::INTERNAL_SERVER_ERROR, "Error en DB".to_string())
         }
     }
+}
+
+// --- HANDLER POST: Crear Biológico con sus Dosis ---
+pub async fn crear_biologico_completo(
+    State(state): State<AppState>,
+    Json(payload): Json<CreateBiologicoCompletoDto>,
+) -> impl IntoResponse {
+    let mut tx = match state.db.begin().await {
+        Ok(tx) => tx,
+        Err(e) => {
+            eprintln!("Error iniciando transacción: {:?}", e);
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Error en DB".to_string());
+        }
+    };
+
+    let query_biologico = r#"
+        INSERT INTO catalogo_biologicos (nombre, descripcion)
+        VALUES ($1, $2)
+        RETURNING id
+    "#;
+
+    let biologico_id = match sqlx::query_scalar::<_, i32>(query_biologico)
+        .bind(&payload.nombre)
+        .bind(&payload.descripcion)
+        .fetch_one(&mut *tx)
+        .await
+    {
+        Ok(id) => id,
+        Err(e) => {
+            eprintln!("Error insertando biológico: {:?}", e);
+            let _ = tx.rollback().await;
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Error insertando biológico".to_string());
+        }
+    };
+
+    let query_dosis = r#"
+        INSERT INTO esquema_dosis (
+            biologico_id, nombre_dosis, orden_aplicacion, edad_recomendada_meses,
+            intervalo_recomendado_meses, intervalo_minimo_meses, es_refuerzo, es_anual
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    "#;
+
+    for dosis in payload.dosis {
+        if let Err(e) = sqlx::query(query_dosis)
+            .bind(biologico_id)
+            .bind(&dosis.nombre_dosis)
+            .bind(dosis.orden_aplicacion)
+            .bind(dosis.edad_recomendada_meses)
+            .bind(dosis.intervalo_recomendado_meses)
+            .bind(dosis.intervalo_minimo_meses)
+            .bind(dosis.es_refuerzo)
+            .bind(dosis.es_anual)
+            .execute(&mut *tx)
+            .await
+        {
+            eprintln!("Error insertando dosis: {:?}", e);
+            let _ = tx.rollback().await;
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Error insertando dosis".to_string());
+        }
+    }
+
+    if let Err(e) = tx.commit().await {
+        eprintln!("Error confirmando transacción: {:?}", e);
+        return (StatusCode::INTERNAL_SERVER_ERROR, "Error en DB al guardar todo".to_string());
+    }
+
+    (StatusCode::CREATED, format!("Biológico creado con ID: {}", biologico_id))
 }

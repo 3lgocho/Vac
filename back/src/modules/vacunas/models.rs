@@ -45,3 +45,21 @@ pub struct CreateVacunaAplicadaDto {
     pub dosis_ml: Option<f64>,
     pub observacion: Option<String>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct CreateDosisDto {
+    pub nombre_dosis: String,
+    pub orden_aplicacion: i32,
+    pub edad_recomendada_meses: i32,
+    pub intervalo_recomendado_meses: i32,
+    pub intervalo_minimo_meses: i32,
+    pub es_refuerzo: bool,
+    pub es_anual: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateBiologicoCompletoDto {
+    pub nombre: String,
+    pub descripcion: Option<String>,
+    pub dosis: Vec<CreateDosisDto>,
+}
