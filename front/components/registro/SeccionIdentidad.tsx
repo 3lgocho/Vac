@@ -20,7 +20,7 @@ export default function SeccionIdentidad() {
             <View className="space-y-stack-md gap-4">
                 {/* Cédula */}
                 <View className="flex flex-col gap-unit relative z-50">
-                    <Text className="font-label-md text-label-md text-on-surface mb-1">Documento de Identidad</Text>
+                    <Text className="font-label-md text-label-md text-on-surface mb-1">Cédula de Identidad del Paciente <Text className="text-error">*</Text></Text>
                     <View className="flex flex-row relative z-50">
                         <TouchableOpacity
                             onPress={() => setIsOpenDoc(!isOpenDoc)}
@@ -60,7 +60,7 @@ export default function SeccionIdentidad() {
 
                 {/* Nombre */}
                 <View className="flex flex-col gap-unit">
-                    <Text className="font-label-md text-label-md text-on-surface mb-1">Nombre</Text>
+                    <Text className="font-label-md text-label-md text-on-surface mb-1">Nombre <Text className="text-error">*</Text></Text>
                     <TextInput
                         value={nombre}
                         onChangeText={(text) => updateField('nombre', text)}
@@ -71,7 +71,7 @@ export default function SeccionIdentidad() {
 
                 {/* Apellido */}
                 <View className="flex flex-col gap-unit">
-                    <Text className="font-label-md text-label-md text-on-surface mb-1">Apellido</Text>
+                    <Text className="font-label-md text-label-md text-on-surface mb-1">Apellido <Text className="text-error">*</Text></Text>
                     <TextInput
                         value={apellido}
                         onChangeText={(text) => updateField('apellido', text)}

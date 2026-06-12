@@ -15,7 +15,7 @@ export default function SeccionDireccion() {
             </View>
             <View className="flex flex-col gap-4">
                 <View className="flex flex-col gap-unit">
-                    <Text className="font-label-lg text-on-surface-variant mb-1">Comunidad/Localidad</Text>
+                    <Text className="font-label-lg text-on-surface-variant mb-1">Comunidad/Localidad <Text className="text-error">*</Text></Text>
                     <TextInput
                         value={comunidad}
                         onChangeText={(text) => updateField('comunidad', text)}
@@ -24,7 +24,7 @@ export default function SeccionDireccion() {
                     />
                 </View>
                 <View className="flex flex-col gap-unit">
-                    <Text className="font-label-lg text-on-surface-variant mb-1">Calle / Avenida</Text>
+                    <Text className="font-label-lg text-on-surface-variant mb-1">Calle / Avenida <Text className="text-error">*</Text></Text>
                     <TextInput
                         value={calle}
                         onChangeText={(text) => updateField('calle', text)}

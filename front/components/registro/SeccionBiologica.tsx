@@ -22,7 +22,7 @@ export default function SeccionBiologica() {
                 {/* Fecha de Nacimiento y Edad */}
                 <View className="flex flex-row gap-4">
                     <View className="flex-1 flex flex-col gap-unit">
-                        <Text className="font-label-lg text-on-surface-variant mb-1">Fecha Nacimiento</Text>
+                        <Text className="font-label-lg text-on-surface-variant mb-1">Fecha Nacimiento <Text className="text-error">*</Text></Text>
                         <TextInput
                             className="h-touch-target-min w-full rounded-lg border border-outline-variant px-4 font-body-md text-on-surface bg-surface-container-lowest"
                             placeholder="DD/MM/AAAA"
@@ -44,7 +44,7 @@ export default function SeccionBiologica() {
 
                 {/* Género */}
                 <View className="flex flex-col gap-unit mt-2">
-                    <Text className="font-label-md text-label-md text-on-surface mb-1">Sexo</Text>
+                    <Text className="font-label-md text-label-md text-on-surface mb-1">Sexo <Text className="text-error">*</Text></Text>
                     <View className="flex-row w-full border border-outline-variant/50 mt-1 bg-surface-container-low rounded-lg p-1">
                         <TouchableOpacity
                             onPress={() => updateField('genero', 'Femenino')}
