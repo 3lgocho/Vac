@@ -38,6 +38,9 @@ interface RegistroState {
     tieneAlergia: boolean;
     alergiasSeleccionadas: AlergiaSeleccionada[];
 
+    idempotencyKey: string | null;
+    idempotencyKeyTimestamp: number | null;
+
     updateField: (field: keyof Omit<RegistroState, 'updateField' | 'toggleGrupo' | 'clearFormData' | 'addVacuna' | 'removeVacuna' | 'addAlergia' | 'removeAlergia'>, value: any) => void;
     toggleGrupo: (grupo: string) => void;
 
@@ -48,6 +51,8 @@ interface RegistroState {
     removeAlergia: (biologico_id: number) => void;
 
     clearFormData: () => void;
+    getIdempotencyKey: () => string;
+    clearIdempotencyKey: () => void;
 }
 
 const initialState = {
@@ -71,6 +76,8 @@ const initialState = {
     vacunasSeleccionadas: [],
     tieneAlergia: false,
     alergiasSeleccionadas: [],
+    idempotencyKey: null,
+    idempotencyKeyTimestamp: null,
 };
 
 export const useRegistroStore = create<RegistroState>((set) => ({
@@ -112,4 +119,22 @@ export const useRegistroStore = create<RegistroState>((set) => ({
     })),
 
     clearFormData: () => set(initialState),
+
+    getIdempotencyKey: () => {
+        let key = "";
+        set((state) => {
+            const now = Date.now();
+            // Si hay una llave válida (creada hace menos de 60 segundos), retornarla.
+            if (state.idempotencyKey && state.idempotencyKeyTimestamp && (now - state.idempotencyKeyTimestamp < 60000)) {
+                key = state.idempotencyKey;
+                return state;
+            }
+            // Si expiró o no existe, crear una nueva.
+            key = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            return { ...state, idempotencyKey: key, idempotencyKeyTimestamp: now };
+        });
+        return key;
+    },
+
+    clearIdempotencyKey: () => set((state) => ({ ...state, idempotencyKey: null, idempotencyKeyTimestamp: null })),
 }));

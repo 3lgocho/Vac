@@ -49,13 +49,20 @@ export const useSubmitPaciente = () => {
         };
 
         try {
+            const idempotencyKey = estadoStore.getIdempotencyKey();
+
             const response = await apiFetch('/pacientes', {
                 method: 'POST',
+                headers: {
+                    'Idempotency-Key': idempotencyKey,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 setSubmitState('success');
+                estadoStore.clearIdempotencyKey();
             } else {
                 const errorData = await response.text();
                 setSubmitError(`Error del servidor: ${errorData}`);

@@ -2,10 +2,11 @@ use super::models::CreatePacientePayload;
 use crate::AppState;
 use crate::modules::auth::models::Claims;
 use crate::modules::logs::handlers::log_action;
-use axum::{Json, extract::{Extension, State}, http::StatusCode, response::IntoResponse};
+use axum::{Json, extract::{Extension, State}, http::{StatusCode, HeaderMap}, response::IntoResponse};
 
 pub async fn crear_paciente(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Extension(claims): Extension<Claims>,
     Json(payload): Json<CreatePacientePayload>,
 ) -> impl IntoResponse {
@@ -28,6 +29,23 @@ pub async fn crear_paciente(
             );
         }
     };
+
+    // 1.5 VERIFICAR IDEMPOTENCIA
+    if let Some(idempotency_key) = headers.get("Idempotency-Key").and_then(|h| h.to_str().ok()) {
+        let query_idempotency = "INSERT INTO idempotency_keys (key) VALUES ($1)";
+        if let Err(e) = sqlx::query(query_idempotency)
+            .bind(idempotency_key)
+            .execute(&mut *tx)
+            .await
+        {
+            let _ = tx.rollback().await;
+            eprintln!("Error de idempotencia (duplicado): {:?}", e);
+            return (
+                StatusCode::CONFLICT,
+                "Petición duplicada interceptada".to_string(),
+            );
+        }
+    }
 
     // 2. INSERTAR PACIENTE
     let query_paciente = r#"

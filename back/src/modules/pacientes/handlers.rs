@@ -7,7 +7,7 @@ use crate::modules::validador::reglas::obtener_esquema_disponible;
 use axum::{
     Json,
     extract::{Extension, Path, Query, State},
-    http::StatusCode,
+    http::{StatusCode, HeaderMap},
     response::IntoResponse,
 };
 use crate::modules::auth::models::Claims;
@@ -231,6 +231,7 @@ pub struct AplicarVacunaPayload {
 
 pub async fn aplicar_vacunas(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Extension(claims): Extension<Claims>,
     Path(id): Path<i32>,
     Json(payload): Json<Vec<AplicarVacunaPayload>>,
@@ -247,6 +248,22 @@ pub async fn aplicar_vacunas(
 
     let mut tx = state.db.begin().await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error al iniciar transacción: {e}")))?;
+
+    if let Some(idempotency_key) = headers.get("Idempotency-Key").and_then(|h| h.to_str().ok()) {
+        let query_idempotency = "INSERT INTO idempotency_keys (key) VALUES ($1)";
+        if let Err(e) = sqlx::query(query_idempotency)
+            .bind(idempotency_key)
+            .execute(&mut *tx)
+            .await
+        {
+            let _ = tx.rollback().await;
+            eprintln!("Error de idempotencia en vacunas (duplicado): {:?}", e);
+            return Err((
+                StatusCode::CONFLICT,
+                "Aplicación de vacunas duplicada interceptada".to_string(),
+            ));
+        }
+    }
 
     for vacuna in &payload {
         sqlx::query(
