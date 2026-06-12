@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Calendario } from '../../../components/Calendario';
 import { useAgendaPorFecha } from '../../../hooks/useAgendaPorFecha';
 import dayjs from 'dayjs';
@@ -31,6 +32,7 @@ const estadoTema: Record<string, { bgSide: string; bgStatus: string; textStatus:
 };
 
 export default function AgendaScreen() {
+    const router = useRouter();
     const [vistaActual, setVistaActual] = useState<'dia' | 'semana' | 'mes'>('semana');
     const [fechaSeleccionada, setFechaSeleccionada] = useState(new Date());
     const strDate = dayjs(fechaSeleccionada).format('YYYY-MM-DD');
@@ -87,7 +89,10 @@ export default function AgendaScreen() {
                         const iniciales = `${item.paciente_nombre?.[0] || ''}${item.paciente_apellido?.[0] || ''}`.toUpperCase();
                         
                         return (
-                            <TouchableOpacity className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 relative overflow-hidden mb-3 flex flex-col active:opacity-70">
+                            <TouchableOpacity 
+                                onPress={() => router.push(`/pacientes/${item.paciente_id}`)}
+                                className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 relative overflow-hidden mb-3 flex flex-col active:opacity-70"
+                            >
                                 <View className={`absolute left-0 top-0 bottom-0 w-1 ${tema.bgSide}`} />
                                 
                                 <View className="flex flex-row items-center justify-between w-full">

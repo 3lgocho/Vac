@@ -222,7 +222,7 @@ export default function PacientePerfilScreen() {
                                     <MaterialIcons name="public" size={20} color="#008080" />
                                     <Text className="font-label-lg text-label-lg text-on-surface ml-2">Etnia</Text>
                                 </View>
-                                <InfoRow label="" value={paciente.etnia || 'No pertenece a ninguna etnia'} />
+                                <InfoRow label="" value={paciente.etnia ? paciente.etnia.replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase()) : 'No pertenece a ninguna etnia'} />
                             </View>
 
                             {/* Grupos Especiales */}

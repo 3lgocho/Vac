@@ -47,7 +47,12 @@ export const useBusquedaPacientes = () => {
             if (pageNum === 1) {
                 setPacientes(newPacientes);
             } else {
-                setPacientes(prev => [...prev, ...newPacientes]);
+                setPacientes(prev => {
+                    // Evitar duplicados por race conditions
+                    const existingIds = new Set(prev.map(p => p.id));
+                    const uniqueNew = newPacientes.filter((p: PacienteSearch) => !existingIds.has(p.id));
+                    return [...prev, ...uniqueNew];
+                });
             }
 
             setHasMore(newPacientes.length > 0 && (pageNum * 10) < total);

@@ -213,7 +213,7 @@ const [confirmLogout, setConfirmLogout] = useState(false);
     <SafeAreaView className="bg-background flex-1">
       <FlatList
         data={pacientes}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         ListHeaderComponent={ListHeader}
         contentContainerStyle={{ paddingBottom: 100 }}
         className="px-margin-mobile"

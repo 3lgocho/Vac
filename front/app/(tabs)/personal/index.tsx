@@ -278,13 +278,15 @@ export default function PersonalScreen() {
                     <View className="flex-row mb-4 bg-surface-container rounded-lg p-1">
                         <TouchableOpacity
                             onPress={() => setFormData({ ...formData, rol: 'enfermero' })}
-                            className={`flex-1 p-3 rounded-md items-center ${formData.rol === 'enfermero' ? 'bg-primary shadow-sm' : ''}`}
+                            className={`flex-1 p-3 rounded-md items-center ${formData.rol === 'enfermero' ? 'bg-primary' : ''}`}
+                            style={formData.rol === 'enfermero' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                         >
                             <Text className={`font-semibold ${formData.rol === 'enfermero' ? 'text-white' : 'text-on-surface-variant'}`}>Enfermero</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => setFormData({ ...formData, rol: 'coordinador' })}
-                            className={`flex-1 p-3 rounded-md items-center ${formData.rol === 'coordinador' ? 'bg-primary shadow-sm' : ''}`}
+                            className={`flex-1 p-3 rounded-md items-center ${formData.rol === 'coordinador' ? 'bg-primary' : ''}`}
+                            style={formData.rol === 'coordinador' ? { elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 1.41 } : {}}
                         >
                             <Text className={`font-semibold ${formData.rol === 'coordinador' ? 'text-white' : 'text-on-surface-variant'}`}>Coordinador</Text>
                         </TouchableOpacity>

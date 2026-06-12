@@ -13,8 +13,13 @@ export default function CatalogoScreen() {
     const fetchBiologicos = async () => {
         try {
             setLoading(true);
-            const data = await apiFetch('/biologicos');
-            setBiologicos(data);
+            const response = await apiFetch('/biologicos');
+            if (response.ok) {
+                const data = await response.json();
+                setBiologicos(data);
+            } else {
+                console.error('Error fetching biologicos, status:', response.status);
+            }
         } catch (error) {
             console.error('Error fetching biologicos:', error);
         } finally {
