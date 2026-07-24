@@ -69,18 +69,18 @@ pub enum GrupoEspecial {
     Otro,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CreateVacunaDetalle {
     pub biologico_id: i32,
     pub dosis_id: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CreateAlergiaDetalle {
     pub biologico_id: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CreatePacientePayload {
     pub cedula: String,
     pub nacionalidad: String,

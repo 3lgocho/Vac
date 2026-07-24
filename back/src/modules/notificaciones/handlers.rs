@@ -27,6 +27,7 @@ pub struct EnviarComprobanteResponse {
 
 pub async fn enviar_notificacion_vacunas(
     State(state): State<AppState>,
+    axum::extract::Extension(claims): axum::extract::Extension<crate::modules::auth::models::Claims>,
     Json(payload): Json<EnviarComprobantePayload>,
 ) -> Result<Json<EnviarComprobanteResponse>, (StatusCode, String)> {
     let paciente_id = payload.paciente_id;
@@ -105,6 +106,7 @@ pub async fn enviar_notificacion_vacunas(
         fecha_nacimiento: Some(paciente.fecha_nacimiento),
         sexo: &paciente.genero,
         vacunas: vacunas_pdf,
+        enfermera_responsable: claims.nombre.clone(),
     };
 
     let pdf_base64 = match generar_comprobante_pdf(&datos_vacunacion) {

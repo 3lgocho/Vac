@@ -15,6 +15,7 @@ use crate::modules::logs::handlers::log_action;
 use chrono::{Local, NaiveDate};
 use serde::Deserialize;
 use std::collections::HashMap;
+use sqlx::Row;
 
 pub async fn listar_pacientes(State(state): State<AppState>) -> impl IntoResponse {
     let query = r#"
@@ -267,11 +268,12 @@ pub async fn aplicar_vacunas(
 
     for vacuna in &payload {
         sqlx::query(
-            "INSERT INTO paciente_vacunas (paciente_id, biologico_id, dosis_id, fecha_aplicacion) VALUES ($1, $2, $3, CURRENT_DATE)"
+            "INSERT INTO paciente_vacunas (paciente_id, biologico_id, dosis_id, fecha_aplicacion, enfermera_id) VALUES ($1, $2, $3, CURRENT_DATE, $4)"
         )
             .bind(id)
             .bind(vacuna.biologico_id)
             .bind(vacuna.dosis_id)
+            .bind(claims.sub)
             .execute(&mut *tx)
             .await
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("Error insertando vacuna: {e}")))?;
@@ -285,17 +287,90 @@ pub async fn aplicar_vacunas(
         claims.nombre, payload.len(), id
     );
 
-    log_action(
-        &state.db,
-        claims.sub,
-        "VACUNACION",
-        "PACIENTE",
-        Some(id),
-        &detalles,
-        None,
-        Some(serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null)),
-    )
-    .await;
+    let paciente = sqlx::query_as::<_, Paciente>("SELECT * FROM pacientes WHERE id = $1")
+        .bind(id)
+        .fetch_optional(&state.db)
+        .await
+        .unwrap_or(None);
+
+    let enfermera_nombre = claims.nombre.clone();
+    let enfermera_id = claims.sub;
+    let pool = state.db.clone();
+    let payload_val = serde_json::to_value(&payload).unwrap_or(serde_json::Value::Null);
+
+    tokio::spawn(async move {
+        log_action(
+            &pool,
+            enfermera_id,
+            "VACUNACION",
+            "PACIENTE",
+            Some(id),
+            &detalles,
+            None,
+            Some(payload_val),
+        )
+        .await;
+
+        if let Some(p) = paciente {
+            if let Some(tel) = p.telefono {
+                let msg = format!("Hola {} {}, se ha registrado una nueva vacuna en tu historial. Aquí tienes tu carnet actualizado.", p.nombre, p.apellido);
+                
+                let query_historial = r#"
+                    SELECT 
+                        cb.nombre AS vacuna,
+                        ed.nombre AS dosis,
+                        pv.fecha_aplicacion
+                    FROM paciente_vacunas pv
+                    JOIN catalogo_biologicos cb ON pv.biologico_id = cb.id
+                    JOIN esquema_dosis ed ON pv.dosis_id = ed.id
+                    WHERE pv.paciente_id = $1
+                    ORDER BY pv.fecha_aplicacion DESC
+                "#;
+                
+                struct FilaOwned {
+                    vacuna: String,
+                    dosis: String,
+                    fecha: chrono::NaiveDate,
+                }
+                let mut filas_owned = Vec::new();
+                
+                if let Ok(records) = sqlx::query(query_historial)
+                    .bind(id)
+                    .fetch_all(&pool)
+                    .await
+                {
+                    for row in records {
+                        let vacuna: String = row.get("vacuna");
+                        let dosis: String = row.get("dosis");
+                        let fecha: chrono::NaiveDate = row.get("fecha_aplicacion");
+                        filas_owned.push(FilaOwned { vacuna, dosis, fecha });
+                    }
+                }
+
+                let vacunas_fila: Vec<crate::modules::notificaciones::pdf_generator::VacunaAplicadaFila> = filas_owned.iter().map(|f| {
+                    crate::modules::notificaciones::pdf_generator::VacunaAplicadaFila {
+                        vacuna: &f.vacuna,
+                        dosis: &f.dosis,
+                        fecha: f.fecha,
+                    }
+                }).collect();
+
+                let cedula_full = format!("{}-{}", p.nacionalidad, p.cedula);
+                let datos = crate::modules::notificaciones::pdf_generator::DatosVacunacion {
+                    nombre: &p.nombre,
+                    cedula: &cedula_full,
+                    fecha_nacimiento: Some(p.fecha_nacimiento),
+                    sexo: &p.genero,
+                    vacunas: vacunas_fila,
+                    enfermera_responsable: enfermera_nombre,
+                };
+
+                if let Ok(pdf_base64) = crate::modules::notificaciones::pdf_generator::generar_comprobante_pdf(&datos) {
+                    let _ = crate::modules::notificaciones::client::enviar_notificacion_pdf_vacuna(&tel, &msg, &pdf_base64).await;
+                }
+            }
+        }
+    });
 
     Ok((StatusCode::CREATED, "Vacunas aplicadas exitosamente"))
 }

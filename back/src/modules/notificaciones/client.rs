@@ -10,8 +10,19 @@ pub async fn enviar_notificacion_vacuna(
     // El puerto 2785 es donde Docker expuso tu OpenWA localmente
     let url = "http://localhost:2785/api/sessions/clinica-bot/messages/send-text";
 
+    let tel = telefono.trim();
+    let tel_formatted = if tel.starts_with("0") {
+        format!("58{}", &tel[1..])
+    } else if tel.starts_with("+58") {
+        tel[1..].to_string()
+    } else if tel.starts_with("58") {
+        tel.to_string()
+    } else {
+        format!("58{}", tel)
+    };
+
     // Formateamos el número al estándar de WhatsApp (ej: 584121234567@c.us)
-    let chat_id = format!("{}@c.us", telefono);
+    let chat_id = format!("{}@c.us", tel_formatted);
 
     let res = client
         .post(url)
@@ -41,7 +52,18 @@ pub async fn enviar_notificacion_pdf_vacuna(
 
     let url = "http://localhost:2785/api/sessions/clinica-bot/messages/send-file";
 
-    let chat_id = format!("{}@c.us", telefono);
+    let tel = telefono.trim();
+    let tel_formatted = if tel.starts_with("0") {
+        format!("58{}", &tel[1..])
+    } else if tel.starts_with("+58") {
+        tel[1..].to_string()
+    } else if tel.starts_with("58") {
+        tel.to_string()
+    } else {
+        format!("58{}", tel)
+    };
+
+    let chat_id = format!("{}@c.us", tel_formatted);
     
     // OpenWA espera el data URI completo en algunos endpoints, o solo base64.
     // Usualmente es preferible enviar el data URI: data:application/pdf;base64,...

@@ -9,6 +9,7 @@ pub struct DatosVacunacion<'a> {
     pub fecha_nacimiento: Option<NaiveDate>,
     pub sexo: &'a str,
     pub vacunas: Vec<VacunaAplicadaFila<'a>>,
+    pub enfermera_responsable: String,
 }
 
 pub struct VacunaAplicadaFila<'a> {
@@ -110,6 +111,10 @@ fn generar_comprobante_pdf_basico(datos: &DatosVacunacion) -> Result<String, Str
         let texto_vacuna = format!("{} - {} - {}", vacuna.vacuna, vacuna.dosis, vacuna.fecha.format("%Y-%m-%d"));
         operations.push(Operation::new("Tj", vec![Object::string_literal(texto_vacuna)]));
     }
+
+    operations.push(Operation::new("Td", vec![0.into(), (-30).into()]));
+    let texto_enfermera = format!("Emitido y validado por: {}", datos.enfermera_responsable);
+    operations.push(Operation::new("Tj", vec![Object::string_literal(texto_enfermera)]));
 
     operations.push(Operation::new("ET", vec![]));
     let content = Content { operations };
