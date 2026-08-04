@@ -7,3 +7,4 @@ pub mod validador;
 pub mod personal;
 pub mod notificaciones;
 pub mod logs;
+pub mod estadisticas;

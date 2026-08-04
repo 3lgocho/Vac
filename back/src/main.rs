@@ -24,6 +24,7 @@ use crate::modules::{
     personal::handlers::{create_personal, get_personal, soft_delete_personal, update_personal, update_pin},
     notificaciones::handlers::enviar_notificacion_vacunas,
     logs::handlers::get_logs,
+    estadisticas::handlers::obtener_estadisticas,
 };
 
 #[derive(Clone)]
@@ -106,6 +107,7 @@ async fn main() {
                 .route("/personal/{id}/pin", axum::routing::patch(update_pin))
                 .route("/notificaciones/comprobante", post(enviar_notificacion_vacunas))
                 .route("/logs", get(get_logs))
+                .route("/estadisticas", get(obtener_estadisticas))
                 .layer(middleware::from_fn(auth_middleware)),
         )
         .layer(cors)
